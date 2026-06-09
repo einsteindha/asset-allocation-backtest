@@ -109,8 +109,10 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
     if(!initialized && !avail.some(Boolean)) return;
 
     // Initialize
+    let justInitialized = false;
     if(!initialized){
       initialized = true;
+      justInitialized = true;
       firstDate = {y,m};
       const availW = assets.reduce((s,a,i)=>avail[i]?s+a.w:s,0);
       assets.forEach((a,i) => {
@@ -135,11 +137,13 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
     const total = assetVals.reduce((s,v)=>s+v,0);
     monthlyValues.push({y,m,value:total,assetVals:[...assetVals]});
 
-    // Rebalance
-    if(initialized && shouldRebal(m, mi) && total>0){
+    // Rebalance (초기화 직후 달은 스킵 — 미할당 자산 자금 소실 방지)
+    if(initialized && !justInitialized && shouldRebal(m, mi) && total>0){
+      // 데이터 없는 자산 비중을 가용 자산에 재배분 — 자금 소실 방지
+      const rebalAvailW = assets.reduce((s,a,i)=>avail[i]?s+a.w:s,0)||1;
       assets.forEach((a,i) => {
         if(!avail[i]) return;
-        const target = total * a.w;
+        const target = total * (a.w / rebalAvailW);
         if(a.data.isReturn){
           holdings[a.id] = target;
         } else {

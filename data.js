@@ -190,6 +190,11 @@ async function fetchECOSData(stat, item, startYear, endYear){
 // Convert bond yield series → monthly price return series
 function yieldToReturnMap(yields, duration){
   const priceMap = {};
+  // 첫 달은 이전 수익률 변화 없으므로 쿠폰 수익만 반영
+  if(yields.length > 0){
+    const {year, month, value} = yields[0];
+    priceMap[`${year}-${month}`] = value/100/12;
+  }
   for(let i=1; i<yields.length; i++){
     const py = yields[i-1].value / 100;
     const cy = yields[i].value / 100;
@@ -216,7 +221,7 @@ async function fetchAssetData(assetId, startYear, endYear){
     let priceMap;
     if(def.ecos.isCash){
       priceMap = {};
-      yields.forEach((y,i)=>{ if(i>0) priceMap[`${y.year}-${y.month}`] = y.value/100/12; });
+      yields.forEach(y=>{ priceMap[`${y.year}-${y.month}`] = y.value/100/12; }); // 첫 달 포함
     } else {
       priceMap = yieldToReturnMap(yields, def.dur);
     }
@@ -274,10 +279,12 @@ async function fetchFX(startYear, endYear){
     const r = await fetchYahooPrices('USDKRW=X', startYear, endYear);
     // USDKRW=X는 USD→KRW (≈1350) 반환이 정상
     // 만약 KRW→USD (≈0.00073)로 오면 역수 처리
-    const vals = Object.values(r.priceMap).filter(Boolean);
-    const needsInvert = vals.length > 0 && vals[0] < 10;
     const map = {};
-    Object.entries(r.priceMap).forEach(([k,v]) => { if(v) map[k] = needsInvert ? 1/v : v; });
+    Object.entries(r.priceMap).forEach(([k,v]) => {
+      if(!v || !isFinite(v) || v <= 0) return;
+      const rate = v < 10 ? 1/v : v; // per-entry 역수 처리 (0.001 → 1000)
+      if(rate >= 500 && rate <= 3000) map[k] = rate; // 비합리적 FX 값 제거
+    });
     fxCache = {key, map};
     return map;
   }catch(e){
