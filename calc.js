@@ -50,6 +50,7 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
 
   // Holdings: price-based assets → units; return-based → KRW value
   const holdings = {}; // id → {units or value, type}
+  const lastPrice = {}; // carry-forward: last known price in KRW per asset
   let initialized = false;
   let firstDate = null;
   const monthlyValues = [];
@@ -95,13 +96,19 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
       });
     }
 
+    // Update carry-forward prices
+    assets.forEach(a => {
+      if(!a.data.isReturn){ const p = getPrice(a,y,m); if(p!=null) lastPrice[a.id]=p; }
+    });
+
     // Check which assets have data this month
     const avail = assets.map(a => {
       if(a.data.isReturn) return getReturn(a, y, m) !== null;
       return getPrice(a, y, m) !== null;
     });
 
-    if(!avail.some(Boolean)) return;
+    // Before initialization skip entirely if no asset has data; after init always proceed
+    if(!initialized && !avail.some(Boolean)) return;
 
     // Initialize
     if(!initialized){
@@ -120,11 +127,11 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
       });
     }
 
-    // Compute total portfolio value
+    // Compute total portfolio value (use carry-forward price when current month has no data)
     const assetVals = assets.map((a,i) => {
-      if(!avail[i] || holdings[a.id] == null) return 0;
+      if(holdings[a.id] == null) return 0;
       if(a.data.isReturn) return holdings[a.id];
-      const p = getPrice(a, y, m);
+      const p = getPrice(a, y, m) ?? lastPrice[a.id];
       return p ? holdings[a.id] * p : 0;
     });
     const total = assetVals.reduce((s,v)=>s+v,0);
