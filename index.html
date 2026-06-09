@@ -214,7 +214,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ── ECOS API KEY ────────────────────────────────────────────────
-const ECOS_API_KEY = 'YOUR_ECOS_API_KEY'; // https://ecos.bok.or.kr/api/#/ApiKey 에서 발급
+const ECOS_API_KEY = 'RSVPYYLHM2SX5A2N181J';
 
 // ── Portfolio colors ───────────────────────────────────────────
 const P_COLORS = ['#185FA5','#1D9E75','#D85A30'];
@@ -283,7 +283,7 @@ const PRESETS = {
 // ── State ──────────────────────────────────────────────────────
 const CY = new Date().getFullYear();
 const state = {
-  settings:{startYear:1994, endYear:CY, initialAmount:1000, annualAddition:0, rebalancing:'annual', benchmark:'none'},
+  settings:{startYear:1994, endYear:CY, initialAmount:1000, annualAddition:0, additionTiming:'start', rebalancing:'annual', benchmark:'none'},
   portfolios:[{name:'포트폴리오 1'},{name:'포트폴리오 2'},{name:'포트폴리오 3'}],
   rows: Array.from({length:8}, ()=>({assetId:'', weights:['','','']})),
 };
@@ -338,12 +338,19 @@ function renderSettingsTab(){
   </div>
   <div class="settings-section">
     <div class="settings-section-title">투자 금액</div>
-    <div class="settings-grid-2">
+    <div class="settings-grid">
       <div class="field"><div class="field-label">초기 투자금 (만원)</div>
         <input class="field-input" type="number" id="s-init" value="${s.initialAmount}" min="100" step="100" oninput="state.settings.initialAmount=+this.value||1000">
       </div>
-      <div class="field"><div class="field-label">연 추가납입 (만원)</div>
+      <div class="field"><div class="field-label">납입금액 (만원)</div>
         <input class="field-input" type="number" id="s-add" value="${s.annualAddition}" min="0" step="100" oninput="state.settings.annualAddition=+this.value||0">
+      </div>
+      <div class="field"><div class="field-label">납입 시점</div>
+        <select class="field-select" id="s-timing" onchange="state.settings.additionTiming=this.value">
+          <option value="start"   ${s.additionTiming==='start'  ?'selected':''}>연초 (1월)</option>
+          <option value="end"     ${s.additionTiming==='end'    ?'selected':''}>연말 (12월)</option>
+          <option value="monthly" ${s.additionTiming==='monthly'?'selected':''}>매월 균등</option>
+        </select>
       </div>
     </div>
   </div>
@@ -368,7 +375,7 @@ function renderSettingsTab(){
       </div>
     </div>
   </div>
-  <div class="note-banner">ℹ 연 추가납입은 매년 1월 초에 투자됩니다. 환율 변동은 USD 자산에 자동 반영됩니다 (Yahoo Finance KRW=X).</div>`;
+  <div class="note-banner">ℹ 납입금액은 선택한 시점당 금액입니다 (연초·연말: 연 1회 / 매월: 매월). 환율 변동은 USD 자산에 자동 반영됩니다 (Yahoo Finance KRW=X).</div>`;
 }
 
 // ── Asset select options HTML ──────────────────────────────────
@@ -747,7 +754,7 @@ async function fetchFX(startYear, endYear){
 
 // ── Backtest engine ────────────────────────────────────────────
 function runEngine(portfolioRows, assetDataMap, fxMap, settings){
-  const {startYear, endYear, initialAmount, annualAddition, rebalancing} = settings;
+  const {startYear, endYear, initialAmount, annualAddition, additionTiming='start', rebalancing} = settings;
   const initKRW = initialAmount * 10000;
   const addKRW   = annualAddition * 10000;
 
@@ -806,18 +813,23 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
   };
 
   months.forEach(({y,m}, mi) => {
-    // Annual addition (except first month)
-    if(m===1 && initialized && addKRW>0){
-      // Add contribution proportionally
-      assets.forEach(a => {
-        const add = addKRW * a.w;
-        if(a.data.isReturn){
-          holdings[a.id] = (holdings[a.id]||0) + add;
-        } else {
-          const p = getPrice(a, y, m);
-          if(p) holdings[a.id] = (holdings[a.id]||0) + add/p;
-        }
-      });
+    // Additional contribution by timing
+    if(initialized && addKRW > 0){
+      const addThisMonth =
+        additionTiming === 'monthly'             ? addKRW :
+        additionTiming === 'end'   && m === 12   ? addKRW :
+        additionTiming === 'start' && m === 1    ? addKRW : 0;
+      if(addThisMonth > 0){
+        assets.forEach(a => {
+          const add = addThisMonth * a.w;
+          if(a.data.isReturn){
+            holdings[a.id] = (holdings[a.id]||0) + add;
+          } else {
+            const p = getPrice(a, y, m);
+            if(p) holdings[a.id] = (holdings[a.id]||0) + add/p;
+          }
+        });
+      }
     }
 
     // Apply monthly return for return-based assets
