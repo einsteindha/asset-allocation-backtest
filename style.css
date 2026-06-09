@@ -154,3 +154,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 }
 .donut-row{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;padding:.5rem 0}
 .donut-wrap{flex:1;min-width:220px;max-width:340px}
+.debug-panel{margin:1.5rem 1.5rem 2rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);overflow:hidden}
+.debug-header{display:flex;align-items:center;gap:.5rem;padding:.5rem .875rem;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.debug-header span{flex:1}
+.debug-close{background:none;border:1px solid var(--border);border-radius:4px;padding:.15rem .5rem;font-size:.72rem;cursor:pointer;color:var(--text2)}
+.debug-body{padding:.75rem 1rem;max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem}
+.debug-entry{border-left:3px solid var(--accent);padding-left:.75rem}
+.debug-entry-head{display:flex;gap:.5rem;margin-bottom:.25rem;font-size:.72rem;flex-wrap:wrap}
+.debug-cat{font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace}
+.debug-label{color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.debug-pre{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text1);white-space:pre-wrap;word-break:break-all;margin:0;background:var(--surface2);padding:.4rem .6rem;border-radius:4px;line-height:1.5}

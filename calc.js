@@ -54,6 +54,8 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
   let firstDate = null;
   const monthlyValues = [];
 
+  let _dbRebal = 0;
+
   const shouldRebal = (m, idx) => {
     if(rebalancing==='none') return false;
     if(rebalancing==='annual') return m===1;
@@ -130,6 +132,14 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
 
     // Rebalance
     if(initialized && shouldRebal(m, mi) && total>0){
+      if(typeof debugLog === 'function' && _dbRebal < 3){
+        _dbRebal++;
+        debugLog('리밸런싱', `${y}년 ${m}월 · 총 ${Math.round(total/10000)}만원`, assets.map((a,i)=>({
+          자산: a.id,
+          전: Math.round(assetVals[i]/10000)+'만원',
+          후_목표: Math.round(total*a.w/10000)+'만원',
+        })));
+      }
       assets.forEach((a,i) => {
         if(!avail[i]) return;
         const target = total * a.w;
@@ -144,6 +154,26 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
   });
 
   if(!monthlyValues.length) return null;
+
+  // Debug: per-asset annual returns (first 3 years)
+  if(typeof debugLog === 'function'){
+    assets.forEach(a => {
+      const ai = assets.indexOf(a);
+      const yrS = {}, yrE = {};
+      monthlyValues.forEach(p => {
+        const v = p.assetVals[ai];
+        if(v > 0){ if(!yrS[p.y]) yrS[p.y]=v; yrE[p.y]=v; }
+      });
+      const yrs = Object.keys(yrE).map(Number).sort((x,z)=>x-z).slice(0,3);
+      const rows = yrs.map(yr => ({
+        연도: yr,
+        시작: Math.round(yrS[yr]/10000)+'만원',
+        종료: Math.round(yrE[yr]/10000)+'만원',
+        수익률: (((yrE[yr]-yrS[yr])/yrS[yr])*100).toFixed(1)+'%',
+      }));
+      if(rows.length) debugLog('자산수익률', a.id, rows);
+    });
+  }
 
   // Compute metrics
   const iv = monthlyValues[0].value;
