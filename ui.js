@@ -717,7 +717,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       type:'line', data:{labels, datasets:growthDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:false,maxRotation:0,callback:v=>v||null},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:false,maxRotation:0,callback:(_,i)=>labels[i]||null},grid:{color:gc}},
           y:{type:'linear',ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toLocaleString('ko-KR')+'만'},grid:{color:gc}},
         },
         plugins:{...chartDefaults.plugins, tooltip:{...chartDefaults.plugins.tooltip, callbacks:{
@@ -795,7 +795,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       type:'line', data:{labels:labels2, datasets:ddDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10},autoSkip:false,maxRotation:0,callback:v=>v||null},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10},autoSkip:false,maxRotation:0,callback:(_,i)=>labels2[i]||null},grid:{color:gc}},
           y:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},grid:{color:gc}},
         },
       }
