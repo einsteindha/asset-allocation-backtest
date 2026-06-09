@@ -152,16 +152,11 @@ async function fetchECOSData(stat, item, startYear, endYear){
   const s = `${startYear}01`, e = `${endYear}12`;
   const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/MM/${s}/${e}/${item}`;
 
-  if(typeof debugLog === 'function') debugLog('ECOS URL', `${stat}/${item}`, url);
-
   const toRows = d => {
     if(!d?.StatisticSearch?.row?.length) return null;
-    const rows = d.StatisticSearch.row
+    return d.StatisticSearch.row
       .map(r=>({year:parseInt(r.TIME.slice(0,4)),month:parseInt(r.TIME.slice(4,6)),value:parseFloat(r.DATA_VALUE)}))
       .filter(r=>!isNaN(r.value));
-    if(typeof debugLog === 'function')
-      debugLog('ECOS 응답', `${stat}/${item} (총 ${rows.length}건)`, rows.slice(0,5));
-    return rows;
   };
 
   // 캐싱된 프록시 먼저 시도

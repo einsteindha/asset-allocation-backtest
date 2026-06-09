@@ -283,7 +283,6 @@ function applyPreset(name){
 // ── Run backtest ───────────────────────────────────────────────
 async function doRunBacktest(){
   closeModal();
-  debugClear();
 
   // Validate
   const s = state.settings;
@@ -510,11 +509,6 @@ function renderResults(results, ports, warnings, settings){
       }
       return rets;
     });
-    // 첫 번째 포트폴리오의 첫 번째 자산 쌍만 디버그 로깅
-    if(pi===0 && retSeries.length>=2){
-      debugLog('상관계수 배열A', labels[0]+' (첫12개)', retSeries[0].slice(0,12).map(v=>v==null?'null':v.toFixed(4)));
-      debugLog('상관계수 배열B', labels[1]+' (첫12개)', retSeries[1].slice(0,12).map(v=>v==null?'null':v.toFixed(4)));
-    }
     let hRows = `<tr><th></th>${labels.map(l=>`<th>${escHtml(l)}</th>`).join('')}</tr>`;
     labels.forEach((l,i)=>{
       hRows += `<tr><th>${escHtml(l)}</th>`;
@@ -831,26 +825,6 @@ function updateStep(i,st){
   const el=document.getElementById(`lstep-${i}`); if(!el) return;
   el.className='loading-step '+st;
   if(st==='done') el.querySelector('.step-dot').style.background='var(--green)';
-}
-
-// ── Debug panel ────────────────────────────────────────────────
-function debugClear(){
-  const body = document.getElementById('debugBody');
-  if(body) body.innerHTML = '';
-  const panel = document.getElementById('debugPanel');
-  if(panel) panel.style.display = 'none';
-}
-function debugLog(category, label, data){
-  const panel = document.getElementById('debugPanel');
-  const body  = document.getElementById('debugBody');
-  if(!panel || !body) return;
-  panel.style.display = 'block';
-  const el = document.createElement('div');
-  el.className = 'debug-entry';
-  const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-  el.innerHTML = `<div class="debug-entry-head"><span class="debug-cat">[${escHtml(category)}]</span><span class="debug-label">${escHtml(String(label))}</span></div><pre class="debug-pre">${escHtml(dataStr)}</pre>`;
-  body.appendChild(el);
-  body.scrollTop = body.scrollHeight;
 }
 
 // ── Utilities ──────────────────────────────────────────────────
