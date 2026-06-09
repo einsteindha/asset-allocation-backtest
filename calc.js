@@ -105,9 +105,10 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
     if(!initialized){
       initialized = true;
       firstDate = {y,m};
+      const availW = assets.reduce((s,a,i)=>avail[i]?s+a.w:s,0);
       assets.forEach((a,i) => {
         if(!avail[i]) return;
-        const alloc = initKRW * a.w;
+        const alloc = initKRW * (a.w / availW);
         if(a.data.isReturn){
           holdings[a.id] = alloc;
         } else {

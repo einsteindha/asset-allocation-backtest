@@ -392,7 +392,7 @@ function renderResults(results, ports, warnings, settings){
     ['최종 자산',   i=>manwon(results[i].fv)],
     ['총 수익률',   i=>`<span class="${results[i].totalReturn>=0?'positive':'negative'}">${pct(results[i].totalReturn)}</span>`],
     ['CAGR',        i=>`<span class="${results[i].cagr>=0?'positive':'negative'}">${pct(results[i].cagr)}</span>`],
-    ['연환산 표준편차',i=>results[i].annualVol.toFixed(2)+'%'],
+    ['표준편차',       i=>results[i].annualVol.toFixed(2)+'%'],
     ['최대 낙폭(MDD)',i=>`<span class="negative">-${(results[i].mdd*100).toFixed(2)}%</span>${results[i].mddEnd?` <small style="color:var(--text3)">(${fmtDate(results[i].mddEnd)})</small>`:''}` ],
     ['샤프지수',    i=>results[i].sharpe.toFixed(2)],
     ['소르티노지수',i=>results[i].sortino.toFixed(2)],
@@ -419,7 +419,7 @@ function renderResults(results, ports, warnings, settings){
   const riskRows = [
     ['산술평균 수익률', i=>pct(results[i].arithMean)],
     ['기하평균(CAGR)',  i=>pct(results[i].cagr)],
-    ['연율화 표준편차', i=>results[i].annualVol.toFixed(2)+'%'],
+    ['표준편차',        i=>results[i].annualVol.toFixed(2)+'%'],
     ['하방 편차',       i=>results[i].downDev.toFixed(2)+'%'],
     ['최대 낙폭',       i=>'-'+(results[i].mdd*100).toFixed(2)+'%'],
     ['샤프지수',        i=>results[i].sharpe.toFixed(2)],
@@ -560,8 +560,13 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
+      <div class="section-title">② 자산 구성 비중</div>
+      <div class="donut-row" id="donutRow"></div>
+    </div>
+
+    <div class="section-card">
       <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>② 포트폴리오 성장 추이</span>
+        <span>③ 포트폴리오 성장 추이</span>
         <div style="display:flex;align-items:center;gap:.75rem">
           <button class="log-toggle" id="logToggle" onclick="toggleLog()">로그 스케일</button>
           <div class="legend-row" id="growthLegend"></div>
@@ -571,12 +576,12 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
-      <div class="section-title">③ 연도별 수익률</div>
+      <div class="section-title">④ 연도별 수익률</div>
       <div class="chart-wrap" style="height:280px"><canvas id="annualChart"></canvas></div>
     </div>
 
     <div class="section-card">
-      <div class="section-title">④ 리스크 / 수익률 상세 지표</div>
+      <div class="section-title">⑤ 리스크 / 수익률 상세 지표</div>
       <div style="overflow-x:auto"><table class="perf-table">
         <thead><tr><th>지표</th>${thCols}</tr></thead>
         <tbody>${riskRows}</tbody>
@@ -584,12 +589,12 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑤ 낙폭 차트</div>
+      <div class="section-title">⑥ 낙폭 차트</div>
       <div class="chart-wrap" style="height:220px"><canvas id="ddChart"></canvas></div>
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑥ 역사적 위기 구간 성과</div>
+      <div class="section-title">⑦ 역사적 위기 구간 성과</div>
       <div style="overflow-x:auto"><table class="crisis-table">
         <thead><tr><th>위기 구간</th>${thCols}</tr></thead>
         <tbody>${crisisRows}</tbody>
@@ -597,23 +602,23 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑦ 롤링 수익률 테이블</div>
+      <div class="section-title">⑧ 롤링 수익률 테이블</div>
       ${rollingHTML}
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑧ 자산별 성과</div>
+      <div class="section-title">⑨ 자산별 성과</div>
       ${assetPerfHTML}
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑨ 상관계수 히트맵</div>
+      <div class="section-title">⑩ 상관계수 히트맵</div>
       <div class="section-sub">포트폴리오 내 자산군 간 월별 수익률 기반 피어슨 상관계수</div>
       ${heatmapHTML||'<div style="color:var(--text3);font-size:.82rem">자산이 2개 이상인 포트폴리오에서 표시됩니다.</div>'}
     </div>
 
     <div class="section-card">
-      <div class="section-title">⑩ 수익 기여도 분해</div>
+      <div class="section-title">⑪ 수익 기여도 분해</div>
       ${contribHTML}
     </div>
 
@@ -654,6 +659,39 @@ function buildCharts(results, ports, sortedMonths, settings){
     plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false}},
   };
 
+  // ── Donut charts (asset allocation) ───────────────────────
+  const donutColors = ['#4E79A7','#F28E2B','#E15759','#76B7B2','#59A14F','#EDC948','#B07AA1','#FF9DA7','#9C755F','#BAB0AC'];
+  const donutRow = document.getElementById('donutRow');
+  if(donutRow){
+    results.forEach((r,pi)=>{
+      if(!r) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'donut-wrap';
+      wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div style="position:relative;height:220px"><canvas id="donut${pi}"></canvas></div>`;
+      donutRow.appendChild(wrap);
+    });
+    results.forEach((r,pi)=>{
+      if(!r) return;
+      const ctx = document.getElementById(`donut${pi}`);
+      if(!ctx) return;
+      const labels = r.assets.map(a=>ASSET_DEF[a.id]?.name||a.id);
+      const data = r.assets.map(a=>Math.round(a.w*1000)/10);
+      const c = new Chart(ctx,{
+        type:'doughnut',
+        data:{labels, datasets:[{data, backgroundColor:donutColors.slice(0,labels.length), borderWidth:2, borderColor:isDark?'#1E1C1A':'#FAFAF8'}]},
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{display:true,position:'right',labels:{color:tc,font:{size:10},boxWidth:12,padding:6}},
+            tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}%`}},
+          },
+          cutout:'65%',
+        }
+      });
+      _charts.push(c);
+    });
+  }
+
   // ── Growth chart (万원 on Y axis) ─────────────────────────
   const growthDatasets = results.map((r,pi)=>{
     if(!r) return null;
@@ -673,7 +711,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       type:'line', data:{labels, datasets:growthDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:true,maxTicksLimit:15},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:false,maxRotation:0,callback:v=>v||null},grid:{color:gc}},
           y:{type:'linear',ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toLocaleString('ko-KR')+'만'},grid:{color:gc}},
         },
         plugins:{...chartDefaults.plugins, tooltip:{...chartDefaults.plugins.tooltip, callbacks:{
@@ -751,7 +789,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       type:'line', data:{labels:labels2, datasets:ddDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10},autoSkip:true,maxTicksLimit:15},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10},autoSkip:false,maxRotation:0,callback:v=>v||null},grid:{color:gc}},
           y:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},grid:{color:gc}},
         },
       }
