@@ -614,7 +614,7 @@ function renderResults(results, ports, warnings, settings){
     <div class="section-card">
       <div class="section-title">⑩ 상관계수 히트맵</div>
       <div class="section-sub">포트폴리오 내 자산군 간 월별 수익률 기반 피어슨 상관계수</div>
-      ${heatmapHTML||'<div style="color:var(--text3);font-size:.82rem">자산이 2개 이상인 포트폴리오에서 표시됩니다.</div>'}
+      <div class="heatmap-row">${heatmapHTML||'<div style="color:var(--text3);font-size:.82rem">자산이 2개 이상인 포트폴리오에서 표시됩니다.</div>'}</div>
     </div>
 
     <div class="section-card">
