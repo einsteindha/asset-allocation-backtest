@@ -30,7 +30,7 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
     const data = asset.data;
     if(data.isReturn) return null; // handled differently
     const p = data.priceMap[key];
-    if(p == null) return null;
+    if(!p || !isFinite(p)) return null; // null, 0, NaN, Infinity 모두 결측 처리
     if(asset.def.cur === 'USD') return p * getFX(y,m);
     return p;
   };

@@ -167,7 +167,7 @@ function updateWeight(ri, pi, val){
   }
 }
 function addRow(){
-  if(state.rows.length >= 10){ alert('자산은 최대 10개까지 추가할 수 있습니다.'); return; }
+  if(state.rows.length >= 30){ alert('자산은 최대 30개까지 추가할 수 있습니다.'); return; }
   state.rows.push({assetId:'', weights:['','','']});
   renderPortfolioTab();
 }
@@ -269,7 +269,7 @@ function applyPreset(name){
       // Find empty row or add new one
       row = state.rows.find(r => !r.assetId);
       if(!row){
-        if(state.rows.length >= 10){ return; }
+        if(state.rows.length >= 30){ return; }
         row = {assetId:'', weights:['','','']};
         state.rows.push(row);
       }

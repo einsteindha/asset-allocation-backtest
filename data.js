@@ -139,7 +139,7 @@ async function fetchYahooPrices(ticker, startYear, endYear){
   if(!ts||!closes) throw new Error(`${ticker} 데이터 없음`);
   const priceMap = {};
   ts.forEach((t,i)=>{
-    if(closes[i]==null) return;
+    if(!closes[i] || !isFinite(closes[i])) return; // null, 0, NaN 제거
     const d = new Date(t*1000);
     priceMap[`${d.getFullYear()}-${d.getMonth()+1}`] = closes[i];
   });
