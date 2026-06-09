@@ -558,16 +558,16 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
-      <div class="section-title">① 성과 요약</div>
+      <div class="section-title">① 자산 구성 비중</div>
+      <div class="donut-row" id="donutRow"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">② 성과 요약</div>
       <div style="overflow-x:auto"><table class="perf-table">
         <thead><tr><th>지표</th>${thCols}</tr></thead>
         <tbody>${perfRows}</tbody>
       </table></div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-title">② 자산 구성 비중</div>
-      <div class="donut-row" id="donutRow"></div>
     </div>
 
     <div class="section-card">
@@ -684,7 +684,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       const data = r.assets.map(a=>Math.round(a.w*1000)/10);
       const c = new Chart(ctx,{
         type:'doughnut',
-        data:{labels, datasets:[{data, backgroundColor:donutColors.slice(0,labels.length), borderWidth:2, borderColor:isDark?'#1E1C1A':'#FAFAF8'}]},
+        data:{labels, datasets:[{data, backgroundColor:donutColors.slice(0,labels.length), borderWidth:0}]},
         options:{
           responsive:true, maintainAspectRatio:false,
           plugins:{
