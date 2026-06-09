@@ -1373,9 +1373,14 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="disclaimer">
-      이 도구는 실제 데이터 및 추정치를 기반으로 한 시뮬레이션이며, 미래 수익을 보장하지 않습니다.
-      거래 비용·세금·슬리피지는 반영되지 않으며 배당은 수정주가(Adj Close)로 근사 반영됩니다.
-      무위험수익률 기준: 연 3.0%. 데이터 출처: Yahoo Finance, 한국은행 ECOS. IdentiFi는 투자 자문업자가 아닙니다.
+      <b>데이터 출처 및 한계</b><br>
+      Yahoo Finance 무료 API와 한국은행 ECOS 통계를 사용합니다.
+      KOSPI(^KS11), 코스닥(^KQ11), 미국 대형주(S&P 500 지수 ^GSPC, 1928년~), 미국 소형주(Russell 2000 ^RUT, 1987년~)는 실제 지수 데이터를 사용합니다.
+      그 외 자산(선진국·이머징·글로벌 리츠·원자재·금 등)은 상장 ETF(VEA, VWO, GLD, VNQ 등)의 수정주가를 사용하며,
+      운용보수와 추적오차로 인해 실제 지수 대비 수익률에 차이가 있을 수 있습니다.
+      ETF 상장 이전 구간(예: GLD 2004년 이전, VWO·VGK 2005년 이전, VNQI 2010년 이전)은 유사 ETF 데이터로 연장·대체합니다.
+      국내 채권과 현금(콜금리)은 한국은행 ECOS 금리 통계를 기반으로 월간 수익률을 추산합니다.<br>
+      거래비용·세금·슬리피지 미반영. 배당은 수정주가(Adj Close)에 근사 반영. 무위험수익률 기준: 연 3.0%. 본 도구는 투자 자문이 아닙니다.
     </div>`;
 
   document.getElementById('resultsArea').style.display = 'block';
