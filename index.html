@@ -231,7 +231,7 @@ const ASSET_DEF = {
   KR_VALUE:    {name:'국내 가치주(추정)',   ticker:'^KS11',     cur:'KRW', grp:'국내 주식', est:true},
   // 해외 주식 - 미국
   US_TOTAL:    {name:'미국 전체 주식시장',  ticker:'VTI',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
-  SP500:       {name:'미국 대형주 (S&P500)',ticker:'SPY',       cur:'USD', grp:'해외 주식-미국'},
+  SP500:       {name:'미국 대형주',          ticker:'SPY',       cur:'USD', grp:'해외 주식-미국'},
   US_GROWTH:   {name:'미국 대형 성장주',    ticker:'VUG',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
   US_VALUE:    {name:'미국 대형 가치주',    ticker:'VTV',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
   US_MID:      {name:'미국 중형주',         ticker:'VO',        cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
@@ -342,15 +342,15 @@ function renderSettingsTab(){
       <div class="field"><div class="field-label">초기 투자금 (만원)</div>
         <input class="field-input" type="number" id="s-init" value="${s.initialAmount}" min="100" step="100" oninput="state.settings.initialAmount=+this.value||1000">
       </div>
-      <div class="field"><div class="field-label">납입금액 (만원)</div>
-        <input class="field-input" type="number" id="s-add" value="${s.annualAddition}" min="0" step="100" oninput="state.settings.annualAddition=+this.value||0">
-      </div>
       <div class="field"><div class="field-label">납입 시점</div>
         <select class="field-select" id="s-timing" onchange="state.settings.additionTiming=this.value">
-          <option value="start"   ${s.additionTiming==='start'  ?'selected':''}>연초 (1월)</option>
-          <option value="end"     ${s.additionTiming==='end'    ?'selected':''}>연말 (12월)</option>
-          <option value="monthly" ${s.additionTiming==='monthly'?'selected':''}>매월 균등</option>
+          <option value="start"   ${s.additionTiming==='start'  ?'selected':''}>연초</option>
+          <option value="end"     ${s.additionTiming==='end'    ?'selected':''}>연말</option>
+          <option value="monthly" ${s.additionTiming==='monthly'?'selected':''}>매월</option>
         </select>
+      </div>
+      <div class="field"><div class="field-label">납입금액 (만원)</div>
+        <input class="field-input" type="number" id="s-add" value="${s.annualAddition}" min="0" step="100" oninput="state.settings.annualAddition=+this.value||0">
       </div>
     </div>
   </div>
