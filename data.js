@@ -29,10 +29,10 @@ const ASSET_DEF = {
   JAPAN:       {name:'일본 주식',           ticker:'EWJ',       cur:'USD', grp:'해외 주식-글로벌'},
   EM:          {name:'이머징 마켓',         ticker:'VWO',       cur:'USD', grp:'해외 주식-글로벌', proxy:'EEM'},
   // 국내 채권
-  KR_BOND_1Y:  {name:'국내 단기채 (1년)',   ecos:{stat:'817Y002',item:'010200000'}, dur:1,  cur:'KRW', grp:'국내 채권'},
-  KR_BOND_3Y:  {name:'국내 중기채 (3년)',   ecos:{stat:'817Y002',item:'010300000'}, dur:3,  cur:'KRW', grp:'국내 채권'},
-  KR_BOND_10Y: {name:'국내 장기채 (10년)',  ecos:{stat:'817Y002',item:'010400000'}, dur:10, cur:'KRW', grp:'국내 채권'},
-  KR_CORP:     {name:'국내 회사채 (AA-)',   ecos:{stat:'817Y002',item:'020200000'}, dur:3,  cur:'KRW', grp:'국내 채권'},
+  KR_BOND_1Y:  {name:'국내 단기채 (1년)',   ecos:{stat:'721Y001',item:'5030000'}, dur:1,  cur:'KRW', grp:'국내 채권'},
+  KR_BOND_3Y:  {name:'국내 중기채 (3년)',   ecos:{stat:'721Y001',item:'5020000'}, dur:3,  cur:'KRW', grp:'국내 채권'},
+  KR_BOND_10Y: {name:'국내 장기채 (10년)',  ecos:{stat:'721Y001',item:'5050000'}, dur:10, cur:'KRW', grp:'국내 채권'},
+  KR_CORP:     {name:'국내 회사채 (AA-)',   ecos:{stat:'721Y001',item:'7020000'}, dur:3,  cur:'KRW', grp:'국내 채권'},
   // 해외 채권
   US_STB:      {name:'미국 단기국채',       ticker:'SHY',       cur:'USD', grp:'해외 채권'},
   US_MTB:      {name:'미국 중기국채',       ticker:'IEF',       cur:'USD', grp:'해외 채권'},
@@ -150,7 +150,7 @@ async function fetchYahooPrices(ticker, startYear, endYear){
 async function fetchECOSData(stat, item, startYear, endYear){
   if(ECOS_API_KEY==='YOUR_ECOS_API_KEY') throw new Error('ECOS API 키 미설정');
   const s = `${startYear}01`, e = `${endYear}12`;
-  const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/MM/${s}/${e}/${item}`;
+  const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/M/${s}/${e}/${item}`;
 
   const toRows = d => {
     if(!d?.StatisticSearch?.row?.length) return null;
