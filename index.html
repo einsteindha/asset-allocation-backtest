@@ -937,15 +937,17 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
     if(dd>mdd){ mdd=dd; mddEnd={y:p.y,m:p.m}; }
   });
 
-  // Annual returns
-  const byYear = {};
-  monthlyValues.forEach(p => {
-    if(!byYear[p.y]) byYear[p.y]={start:p.value, end:p.value};
-    else byYear[p.y].end = p.value;
+  // Annual returns: year-end to year-end (중간 누락 월에 강건)
+  const yearEndVal = {};
+  monthlyValues.forEach(p => { yearEndVal[p.y] = p.value; });
+  const sortedYrs = Object.keys(yearEndVal).map(Number).sort((a,b)=>a-b);
+  const annualRets = sortedYrs.map((y, i) => {
+    const endVal   = yearEndVal[y];
+    const startVal = i === 0
+      ? monthlyValues.find(p => p.y === y).value   // 첫 해: 첫 데이터 포인트 기준
+      : yearEndVal[sortedYrs[i-1]];                // 이후: 전년 연말 기준
+    return { year: y, ret: (endVal - startVal) / startVal * 100 };
   });
-  const annualRets = Object.entries(byYear).map(([yr,{start,end}])=>({
-    year:parseInt(yr), ret:(end-start)/start*100
-  }));
 
   // Best/worst year
   const bestYear = annualRets.reduce((a,b)=>a.ret>b.ret?a:b, annualRets[0]);
