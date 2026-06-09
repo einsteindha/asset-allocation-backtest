@@ -581,6 +581,7 @@ const PROXIES = [
   u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
 ];
 let _wpi = -1;
+let _ecosProxy = undefined; // undefined=미시도, null=직접호출, 0~3=프록시 인덱스
 
 async function tryFetch(url, makeProxy){
   const pu = makeProxy ? makeProxy(url) : url;
@@ -646,20 +647,40 @@ async function fetchECOSData(stat, item, startYear, endYear){
   if(ECOS_API_KEY==='YOUR_ECOS_API_KEY') throw new Error('ECOS API 키 미설정');
   const s = `${startYear}01`, e = `${endYear}12`;
   const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/MM/${s}/${e}/${item}`;
-  let d = null;
-  for(const makeProxy of [null, ...PROXIES]){
+
+  const toRows = d => {
+    if(!d?.StatisticSearch?.row?.length) return null;
+    return d.StatisticSearch.row
+      .map(r=>({year:parseInt(r.TIME.slice(0,4)),month:parseInt(r.TIME.slice(4,6)),value:parseFloat(r.DATA_VALUE)}))
+      .filter(r=>!isNaN(r.value));
+  };
+
+  // 캐싱된 프록시 먼저 시도
+  if(_ecosProxy !== undefined){
     try{
-      d = await tryFetch(url, makeProxy);
-      if(d?.StatisticSearch?.row?.length) break;
-    }catch(e){ d=null; }
+      const d = await tryFetch(url, _ecosProxy===null ? null : PROXIES[_ecosProxy]);
+      const rows = toRows(d);
+      if(rows?.length) return rows;
+    }catch(e){ _ecosProxy=undefined; }
   }
-  if(!d?.StatisticSearch?.row?.length) throw new Error('ECOS 데이터 없음');
-  const rows = d.StatisticSearch.row;
-  return rows.map(r=>({
-    year: parseInt(r.TIME.slice(0,4)),
-    month: parseInt(r.TIME.slice(4,6)),
-    value: parseFloat(r.DATA_VALUE),
-  })).filter(r=>!isNaN(r.value));
+
+  // 직접 + 프록시 전체 병렬 시도 (yahooFetch 동일 패턴)
+  return new Promise((resolve,reject)=>{
+    const cands=[
+      {key:null, fn:()=>tryFetch(url,null)},
+      ...PROXIES.map((p,i)=>({key:i, fn:()=>tryFetch(url,p)})),
+    ];
+    let settled=0, done=false;
+    cands.forEach(({key,fn})=>{
+      fn()
+        .then(d=>{
+          const rows=toRows(d);
+          if(!done&&rows?.length){ done=true; _ecosProxy=key; resolve(rows); }
+          else{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); }
+        })
+        .catch(()=>{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); });
+    });
+  });
 }
 
 // Convert bond yield series → monthly price return series
