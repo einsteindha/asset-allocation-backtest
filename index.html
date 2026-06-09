@@ -746,9 +746,15 @@ async function fetchFX(startYear, endYear){
   const key = `${startYear}_${endYear}`;
   if(fxCache && fxCache.key===key) return fxCache.map;
   try{
-    const r = await fetchYahooPrices('KRW=X', startYear, endYear);
-    fxCache = {key, map:r.priceMap};
-    return r.priceMap;
+    const r = await fetchYahooPrices('USDKRW=X', startYear, endYear);
+    // USDKRW=X는 USD→KRW (≈1350) 반환이 정상
+    // 만약 KRW→USD (≈0.00073)로 오면 역수 처리
+    const vals = Object.values(r.priceMap).filter(Boolean);
+    const needsInvert = vals.length > 0 && vals[0] < 10;
+    const map = {};
+    Object.entries(r.priceMap).forEach(([k,v]) => { if(v) map[k] = needsInvert ? 1/v : v; });
+    fxCache = {key, map};
+    return map;
   }catch(e){
     return null;
   }
@@ -773,7 +779,11 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
 
   const getFX = (y,m) => {
     if(!fxMap) return 1350;
-    return fxMap[`${y}-${m}`] || fxMap[`${y}-${m-1}`] || fxMap[`${y}-${m+1}`] || 1350;
+    const v = fxMap[`${y}-${m}`];
+    if(v) return v;
+    const prevKey = m === 1  ? `${y-1}-12` : `${y}-${m-1}`;
+    const nextKey = m === 12 ? `${y+1}-1`  : `${y}-${m+1}`;
+    return fxMap[prevKey] || fxMap[nextKey] || 1350;
   };
 
   // Get price in KRW for an asset at year/month
