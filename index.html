@@ -1001,13 +1001,16 @@ function computeRolling(monthlyValues, years){
   };
 }
 
-// Correlation matrix
+// Correlation matrix — null 값은 건너뜀 (미상장·누락 구간 제외)
 function pearsonCorr(a,b){
-  const n=Math.min(a.length,b.length); if(!n) return 0;
-  const ma=a.slice(0,n).reduce((s,v)=>s+v,0)/n;
-  const mb=b.slice(0,n).reduce((s,v)=>s+v,0)/n;
+  const pairs=[];
+  const n=Math.min(a.length,b.length);
+  for(let i=0;i<n;i++){ if(a[i]!=null&&b[i]!=null) pairs.push([a[i],b[i]]); }
+  if(pairs.length<3) return 0;
+  const ma=pairs.reduce((s,p)=>s+p[0],0)/pairs.length;
+  const mb=pairs.reduce((s,p)=>s+p[1],0)/pairs.length;
   let num=0,da=0,db=0;
-  for(let i=0;i<n;i++){num+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2;}
+  pairs.forEach(([x,y])=>{num+=(x-ma)*(y-mb);da+=(x-ma)**2;db+=(y-mb)**2;});
   return da&&db?num/Math.sqrt(da*db):0;
 }
 
@@ -1233,7 +1236,11 @@ function renderResults(results, ports, warnings, settings){
     const retSeries = r.assets.map((a,ai)=>{
       const vals = r.monthlyValues.map(m=>m.assetVals[ai]);
       const rets = [];
-      for(let i=1;i<vals.length;i++) rets.push(vals[i-1]>0?(vals[i]-vals[i-1])/vals[i-1]:0);
+      for(let i=1;i<vals.length;i++){
+        rets.push(vals[i-1]>0 && vals[i]>0
+          ? (vals[i]-vals[i-1])/vals[i-1]
+          : null);  // 누락·미상장 구간은 null로 마킹
+      }
       return rets;
     });
     let hRows = `<tr><th></th>${labels.map(l=>`<th>${escHtml(l)}</th>`).join('')}</tr>`;
