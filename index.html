@@ -231,11 +231,11 @@ const ASSET_DEF = {
   KR_VALUE:    {name:'국내 가치주(추정)',   ticker:'^KS11',     cur:'KRW', grp:'국내 주식', est:true},
   // 해외 주식 - 미국
   US_TOTAL:    {name:'미국 전체 주식시장',  ticker:'VTI',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
-  SP500:       {name:'미국 대형주',          ticker:'SPY',       cur:'USD', grp:'해외 주식-미국'},
+  SP500:       {name:'미국 대형주',          ticker:'^GSPC',     cur:'USD', grp:'해외 주식-미국'},
   US_GROWTH:   {name:'미국 대형 성장주',    ticker:'VUG',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
   US_VALUE:    {name:'미국 대형 가치주',    ticker:'VTV',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
   US_MID:      {name:'미국 중형주',         ticker:'VO',        cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
-  US_SMALL:    {name:'미국 소형주',         ticker:'VB',        cur:'USD', grp:'해외 주식-미국', proxy:'IWM'},
+  US_SMALL:    {name:'미국 소형주',         ticker:'^RUT',      cur:'USD', grp:'해외 주식-미국'},
   US_SCV:      {name:'미국 소형 가치주',    ticker:'VBR',       cur:'USD', grp:'해외 주식-미국', proxy:'IWM'},
   // 해외 주식 - 글로벌
   INTL_EX_US:  {name:'선진국 주식 (미국 제외)', ticker:'VEA',   cur:'USD', grp:'해외 주식-글로벌', proxy:'EFA'},
@@ -260,6 +260,8 @@ const ASSET_DEF = {
   COMMODITY:   {name:'원자재',              ticker:'DJP',       cur:'USD', grp:'대안자산', proxy:'GSG'},
   US_REIT:     {name:'미국 리츠',           ticker:'VNQ',       cur:'USD', grp:'대안자산', proxy:'IYR'},
   KR_REIT:     {name:'국내 리츠',           ticker:'088980.KS', cur:'KRW', grp:'대안자산', proxy:'VNQ'},
+  INTL_REIT:   {name:'글로벌 리츠 (미국 제외)', ticker:'VNQI',  cur:'USD', grp:'대안자산', proxy:'VNQ'},
+  GLOBAL_REIT: {name:'글로벌 리츠 (전체)', ticker:'RWO',       cur:'USD', grp:'대안자산', proxy:'VNQ'},
   CASH:        {name:'현금 (콜금리)',        ecos:{stat:'722Y001',item:'0101000',isCash:true}, cur:'KRW', grp:'대안자산'},
 };
 
