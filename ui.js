@@ -5,12 +5,20 @@ let gearSubview = '';
 // ── Modal open/close ───────────────────────────────────────────
 function openModal(){
   document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  const sy = window.scrollY;
+  document.body.dataset.scrollY = sy;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${sy}px`;
+  document.body.style.width = '100%';
   renderModal();
 }
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
+  const sy = parseInt(document.body.dataset.scrollY || '0');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, sy);
   closeGearPopup();
 }
 function handleOverlayClick(e){
@@ -422,8 +430,8 @@ function renderResults(results, ports, warnings, settings){
     ['최대 낙폭(MDD)',i=>`<span class="negative">-${(results[i].mdd*100).toFixed(2)}%</span>${results[i].mddEnd?` <small style="color:var(--text3)">(${fmtDate(results[i].mddEnd)})</small>`:''}` ],
     ['샤프지수',    i=>results[i].sharpe.toFixed(2)],
     ['소르티노지수',i=>results[i].sortino.toFixed(2)],
-    ['최고 연도',   i=>`${results[i].bestYear.year}년 (${pct(results[i].bestYear.ret)})`],
-    ['최저 연도',   i=>`${results[i].worstYear.year}년 (${pct(results[i].worstYear.ret)})`],
+    ['최고 연도',   i=>`${pct(results[i].bestYear.ret)} (${results[i].bestYear.year}년)`],
+    ['최저 연도',   i=>`${pct(results[i].worstYear.ret)} (${results[i].worstYear.year}년)`],
   ];
 
   const thCols = results.map((r,i)=>r?`<th class="p${i+1}-col">${escHtml(ports[i].name)}</th>`:'').join('');
@@ -478,10 +486,10 @@ function renderResults(results, ports, warnings, settings){
       </tr>`;
     }).join('');
     return `<div style="margin-bottom:1rem"><div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};margin-bottom:.5rem">${escHtml(ports[pi].name)}</div>
-      <table class="rolling-table">
+      <div style="overflow-x:auto"><table class="rolling-table">
         <thead><tr><th>구간</th><th>평균</th><th>최고</th><th>최저</th></tr></thead>
         <tbody>${tRows}</tbody>
-      </table></div>`;
+      </table></div></div>`;
   }).join('');
 
   // ── 8. Asset performance ───────────────────────────────────
@@ -509,15 +517,15 @@ function renderResults(results, ports, warnings, settings){
         <td>${ASSET_DEF[a.id]?.name||a.id}</td>
         <td class="${cagr0>=0?'positive':'negative'}">${pct(cagr0)}</td>
         <td>${vol0.toFixed(2)}%</td>
-        <td>${best.y!=='—'?best.y+'년 '+pct(best.ret):'—'}</td>
-        <td>${worst.y!=='—'?worst.y+'년 '+pct(worst.ret):'—'}</td>
+        <td>${best.y!=='—'?pct(best.ret)+' ('+best.y+'년)':'—'}</td>
+        <td>${worst.y!=='—'?pct(worst.ret)+' ('+worst.y+'년)':'—'}</td>
       </tr>`;
     }).join('');
     return `<div style="margin-bottom:1.25rem"><div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};margin-bottom:.5rem">${escHtml(ports[pi].name)}</div>
-      <table class="asset-table">
+      <div style="overflow-x:auto"><table class="asset-table">
         <thead><tr><th style="text-align:left">자산군</th><th>CAGR</th><th>표준편차</th><th>최고 연도</th><th>최저 연도</th></tr></thead>
         <tbody>${assetRows}</tbody>
-      </table></div>`;
+      </table></div></div>`;
   }).join('');
 
   // ── 9. Correlation heatmap ─────────────────────────────────
@@ -563,10 +571,10 @@ function renderResults(results, ports, warnings, settings){
         <td>${share.toFixed(1)}%</td></tr>`;
     }).join('');
     return `<div style="margin-bottom:1.25rem"><div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};margin-bottom:.5rem">${escHtml(ports[pi].name)}</div>
-      <table class="contrib-table">
+      <div style="overflow-x:auto"><table class="contrib-table">
         <thead><tr><th style="text-align:left">자산군</th><th>목표비중</th><th>최종가치</th><th>실제비중</th></tr></thead>
         <tbody>${contribRows}</tbody>
-      </table></div>`;
+      </table></div></div>`;
   }).join('');
 
   // ── Assemble HTML ──────────────────────────────────────────
