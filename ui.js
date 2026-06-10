@@ -222,7 +222,18 @@ function openGearPopup(pi, event){
 function positionPopup(btn){
   const popup = document.getElementById('gearPopup');
   const rect = btn.getBoundingClientRect();
-  popup.style.top = (rect.bottom + 4) + 'px';
+  const vh = window.innerHeight;
+  const maxH = Math.min(vh * 0.7, 400);
+  popup.style.maxHeight = maxH + 'px';
+  const spaceBelow = vh - rect.bottom - 8;
+  const spaceAbove = rect.top - 8;
+  if(spaceBelow >= Math.min(maxH, 200) || spaceBelow >= spaceAbove){
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.style.bottom = 'auto';
+  } else {
+    popup.style.bottom = (vh - rect.top + 4) + 'px';
+    popup.style.top = 'auto';
+  }
   popup.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
   popup.classList.add('open');
 }
@@ -605,12 +616,12 @@ function renderResults(results, ports, warnings, settings){
     </div>
 
     <div class="section-card">
-      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>③ 포트폴리오 성장 추이</span>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <button class="log-toggle" id="logToggle" onclick="toggleLog()">로그 스케일</button>
-          <div class="legend-row" id="growthLegend"></div>
+      <div class="section-title" style="display:flex;align-items:flex-start;gap:.4rem .6rem">
+        <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .45rem">
+          <span style="white-space:nowrap">③ 포트폴리오 성장 추이</span>
+          <button class="log-toggle" id="logToggle" onclick="toggleLog()" style="white-space:nowrap;flex-shrink:0">로그스케일</button>
         </div>
+        <div class="legend-row" id="growthLegend" style="flex-shrink:0;justify-content:flex-end"></div>
       </div>
       <div class="chart-wrap" style="height:340px"><canvas id="growthChart"></canvas></div>
     </div>

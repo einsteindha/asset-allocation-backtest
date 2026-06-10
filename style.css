@@ -85,7 +85,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .add-row-btn{margin-top:.75rem;background:none;border:1px dashed var(--border2);border-radius:var(--radius);padding:.5rem 1rem;font-size:.8rem;font-family:var(--sans);color:var(--text2);cursor:pointer;transition:all .15s}
 .add-row-btn:hover{border-color:var(--text2);color:var(--text)}
 /* Gear popup */
-.gear-popup{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:.4rem 0;min-width:180px;z-index:2000;box-shadow:0 4px 20px rgba(0,0,0,.12);display:none}
+.gear-popup{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:.4rem 0;min-width:180px;z-index:2000;box-shadow:0 4px 20px rgba(0,0,0,.12);display:none;max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .gear-popup.open{display:block}
 .gear-item{padding:.5rem 1rem;font-size:.82rem;cursor:pointer;color:var(--text);transition:background .1s;white-space:nowrap;display:flex;align-items:center;justify-content:space-between}
 .gear-item:hover{background:var(--surface2)}
