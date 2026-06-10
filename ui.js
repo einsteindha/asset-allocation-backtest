@@ -3,22 +3,31 @@ let gearTarget = -1;
 let gearSubview = '';
 
 // ── Modal open/close ───────────────────────────────────────────
+function _noScroll(e){
+  // Allow touchmove only inside scrollable modal regions
+  if(e.target.closest('.modal-body,.gear-popup')) return;
+  e.preventDefault();
+}
 function openModal(){
   document.getElementById('modalOverlay').classList.add('open');
-  const sy = window.scrollY;
-  document.body.dataset.scrollY = sy;
-  document.body.style.position = 'fixed';
-  document.body.style.top = `-${sy}px`;
-  document.body.style.width = '100%';
+  document.body.dataset.scrollY = window.scrollY;
+  if('ontouchstart' in window){
+    // iOS: prevent background scroll via touchmove; keep body un-fixed so
+    // position:fixed children (gear popup) remain touch-scrollable
+    document.addEventListener('touchmove', _noScroll, {passive:false});
+  } else {
+    document.body.style.overflow = 'hidden';
+  }
   renderModal();
 }
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
-  const sy = parseInt(document.body.dataset.scrollY || '0');
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  window.scrollTo(0, sy);
+  if('ontouchstart' in window){
+    document.removeEventListener('touchmove', _noScroll);
+  } else {
+    document.body.style.overflow = '';
+  }
+  window.scrollTo(0, parseInt(document.body.dataset.scrollY||'0'));
   closeGearPopup();
 }
 function handleOverlayClick(e){
