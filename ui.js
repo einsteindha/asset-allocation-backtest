@@ -434,6 +434,12 @@ function renderResults(results, ports, warnings, settings){
     ['최저 연도',   i=>`${pct(results[i].worstYear.ret)} (${results[i].worstYear.year}년)`],
   ];
 
+  const nActive = results.filter(Boolean).length;
+  const labelPct   = nActive===1?52:nActive===2?40:26;
+  const crisisPct  = nActive===1?55:nActive===2?42:30;
+  const perfMinW   = nActive===1?300:nActive===2?420:520;
+  const crisisMinW = nActive===1?300:nActive===2?400:480;
+
   const thCols = results.map((r,i)=>r?`<th class="p${i+1}-col">${escHtml(ports[i].name)}</th>`:'').join('');
   const perfRows = rows1.map(([label, fn])=>{
     const cells = results.map((r,i)=>r?`<td>${fn(i)}</td>`:'').join('');
@@ -592,8 +598,8 @@ function renderResults(results, ports, warnings, settings){
 
     <div class="section-card">
       <div class="section-title">② 성과 요약</div>
-      <div style="overflow-x:auto"><table class="perf-table">
-        <thead><tr><th>지표</th>${thCols}</tr></thead>
+      <div style="overflow-x:auto"><table class="perf-table" style="min-width:${perfMinW}px">
+        <thead><tr><th style="width:${labelPct}%">지표</th>${thCols}</tr></thead>
         <tbody>${perfRows}</tbody>
       </table></div>
     </div>
@@ -616,8 +622,8 @@ function renderResults(results, ports, warnings, settings){
 
     <div class="section-card">
       <div class="section-title">⑤ 리스크 / 수익률 상세 지표</div>
-      <div style="overflow-x:auto"><table class="perf-table">
-        <thead><tr><th>지표</th>${thCols}</tr></thead>
+      <div style="overflow-x:auto"><table class="perf-table" style="min-width:${perfMinW}px">
+        <thead><tr><th style="width:${labelPct}%">지표</th>${thCols}</tr></thead>
         <tbody>${riskRows}</tbody>
       </table></div>
     </div>
@@ -629,8 +635,8 @@ function renderResults(results, ports, warnings, settings){
 
     <div class="section-card">
       <div class="section-title">⑦ 역사적 위기 구간 성과</div>
-      <div style="overflow-x:auto"><table class="crisis-table">
-        <thead><tr><th>위기 구간</th>${thCols}</tr></thead>
+      <div style="overflow-x:auto"><table class="crisis-table" style="min-width:${crisisMinW}px">
+        <thead><tr><th style="width:${crisisPct}%">위기 구간</th>${thCols}</tr></thead>
         <tbody>${crisisRows}</tbody>
       </table></div>
     </div>
