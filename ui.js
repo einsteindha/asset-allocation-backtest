@@ -782,8 +782,11 @@ function buildCharts(results, ports, sortedMonths, settings){
 
     // Legend
     const leg = document.getElementById('growthLegend');
-    if(leg) leg.innerHTML = growthDatasets.map(d=>`
-      <span class="legend-item"><span class="legend-dot" style="background:${d.borderColor}"></span>${escHtml(d.label)}</span>`).join('');
+    if(leg){
+      if(growthDatasets.length > 1) leg.style.flexDirection = 'column';
+      leg.innerHTML = growthDatasets.map(d=>`
+        <span class="legend-item"><span class="legend-dot" style="background:${d.borderColor}"></span>${escHtml(d.label)}</span>`).join('');
+    }
   }
 
   // ── Annual bar chart ──────────────────────────────────────
