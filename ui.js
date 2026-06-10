@@ -732,12 +732,11 @@ function buildCharts(results, ports, sortedMonths, settings){
 
   const growthCtx = document.getElementById('growthChart');
   if(growthCtx){
-    const labels = sortedMonths.map(k=>{ const[y,m]=k.split('-'); return m==='1'?y:''; });
     const c = new Chart(growthCtx, {
-      type:'line', data:{labels, datasets:growthDatasets},
+      type:'line', data:{labels:sortedMonths, datasets:growthDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:false,maxRotation:0,callback:val=>labels[val]||null},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:true,maxTicksLimit:8,maxRotation:0,callback:val=>{const k=sortedMonths[val];return k?k.split('-')[0]:null;}},grid:{color:gc}},
           y:{type:'linear',ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toLocaleString('ko-KR')+'만'},grid:{color:gc}},
         },
         plugins:{...chartDefaults.plugins, tooltip:{...chartDefaults.plugins.tooltip, callbacks:{
@@ -810,12 +809,11 @@ function buildCharts(results, ports, sortedMonths, settings){
       };
     }).filter(Boolean);
 
-    const labels2 = sortedMonths.map(k=>{ const[y,m]=k.split('-'); return m==='1'?y:''; });
     const c = new Chart(ddCtx, {
-      type:'line', data:{labels:labels2, datasets:ddDatasets},
+      type:'line', data:{labels:sortedMonths, datasets:ddDatasets},
       options:{...chartDefaults,
         scales:{
-          x:{ticks:{color:tc,font:{size:10},autoSkip:false,maxRotation:0,callback:val=>labels2[val]||null},grid:{color:gc}},
+          x:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},autoSkip:true,maxTicksLimit:8,maxRotation:0,callback:val=>{const k=sortedMonths[val];return k?k.split('-')[0]:null;}},grid:{color:gc}},
           y:{ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},grid:{color:gc}},
         },
       }
