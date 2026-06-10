@@ -5,10 +5,12 @@ let gearSubview = '';
 // ── Modal open/close ───────────────────────────────────────────
 function openModal(){
   document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
   renderModal();
 }
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
   closeGearPopup();
 }
 function handleOverlayClick(e){
