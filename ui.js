@@ -143,11 +143,35 @@ function renderPortfolioTab(){
       <tfoot><tr><td style="color:var(--text2);font-size:.78rem">합계</td>${sumCells}<td></td></tr></tfoot>
     </table>
   </div>
-  <button class="add-row-btn" onclick="addRow()">+ 자산 추가</button>`;
+  <button class="add-row-btn" onclick="addRow()">+ 자산 추가</button>
+  <div id="assetNoteList"></div>`;
+  updateAssetNotes();
 }
 
 function updateAsset(ri, val){
   state.rows[ri].assetId = val;
+  updateAssetNotes();
+}
+
+function updateAssetNotes(){
+  const list = document.getElementById('assetNoteList');
+  if(!list) return;
+  const seen = new Set();
+  const items = [];
+  state.rows.forEach(r => {
+    if(!r.assetId || seen.has(r.assetId)) return;
+    seen.add(r.assetId);
+    const def = ASSET_DEF[r.assetId];
+    if(!def) return;
+    if(def.est) items.push({name:def.name, msg:def.note||'추정 데이터', level:'warn'});
+    else if(def.proxy) items.push({name:def.name, msg:`ETF 상장 이전 기간은 ${def.proxy} 데이터로 연장`, level:'info'});
+  });
+  list.innerHTML = items.length
+    ? items.map(it =>
+        `<div class="asset-note-item ${it.level==='warn'?'note-warn':'note-info'}">`+
+        `${it.level==='warn'?'⚠':'ℹ'} <b>${escHtml(it.name)}</b> — ${escHtml(it.msg)}</div>`
+      ).join('')
+    : '';
 }
 function updateWeight(ri, pi, val){
   state.rows[ri].weights[pi] = val;
