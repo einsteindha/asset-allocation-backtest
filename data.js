@@ -10,10 +10,9 @@ const ASSET_DEF = {
   // 국내 주식
   KOSPI_ALL:   {name:'KOSPI 전체',         ticker:'^KS11',     cur:'KRW', grp:'국내 주식'},
   KOSPI_LARGE: {name:'KOSPI 대형주',        ticker:'069500.KS', cur:'KRW', grp:'국내 주식', proxy:'^KS11'},
-  KOSPI_SMALL: {name:'KOSPI 소형주(추정)',  ticker:'^KS11',     cur:'KRW', grp:'국내 주식', est:true, note:'실제 소형주 지수 없음 — KOSPI 전체(^KS11)로 대체. 소형주 특성(고변동·고수익)이 반영되지 않습니다.'},
   KOSDAQ:      {name:'코스닥',              ticker:'^KQ11',     cur:'KRW', grp:'국내 주식'},
   KR_DIV:      {name:'국내 배당주',         ticker:'096530.KS', cur:'KRW', grp:'국내 주식', proxy:'^KS11'},
-  KR_VALUE:    {name:'국내 가치주(추정)',   ticker:'^KS11',     cur:'KRW', grp:'국내 주식', est:true, note:'실제 가치주 지수 없음 — KOSPI 전체(^KS11)로 대체. 가치주 팩터(저PBR·배당)가 반영되지 않습니다.'},
+  KR_VALUE:    {name:'국내 가치주',          ticker:'143460.KS', cur:'KRW', grp:'국내 주식', proxy:'^KS11'},
   // 해외 주식 - 미국
   US_TOTAL:    {name:'미국 전체 주식시장',  ticker:'VTI',       cur:'USD', grp:'해외 주식-미국', proxy:'SPY'},
   SP500:       {name:'미국 대형주',          ticker:'^GSPC',     cur:'USD', grp:'해외 주식-미국'},
