@@ -195,3 +195,4 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pg-copy-btn{display:block;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface2);color:var(--text2);padding:.65rem 1rem;font-size:.82rem;font-family:var(--sans);cursor:pointer;transition:background .15s;text-align:center}
 .pg-copy-btn:hover{background:var(--border)}
 .pg-copy-btn.copied{color:var(--green)}
+.pg-tip{margin-top:1rem;font-size:.75rem;color:var(--amber);background:var(--amber-bg);border-radius:var(--radius);padding:.5rem .75rem;line-height:1.6}
