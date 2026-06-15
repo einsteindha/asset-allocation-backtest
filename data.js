@@ -43,7 +43,7 @@ const ASSET_DEF = {
   GOLD:        {name:'금',                  ticker:'GLD',       cur:'USD', grp:'대안자산', proxy:'IAU'},
   COMMODITY:   {name:'원자재',              ticker:'DJP',       cur:'USD', grp:'대안자산', proxy:'GSG'},
   US_REIT:     {name:'미국 리츠',           ticker:'VNQ',       cur:'USD', grp:'대안자산', proxy:'IYR'},
-  KR_REIT:     {name:'국내 리츠',           ticker:'088980.KS', cur:'KRW', grp:'대안자산', proxy:'VNQ'},
+  KR_REIT:     {name:'국내 리츠',           ticker:'088980.KS', cur:'KRW', grp:'대안자산'},
   INTL_REIT:   {name:'글로벌 리츠 (미국 제외)', ticker:'VNQI',  cur:'USD', grp:'대안자산', proxy:'VNQ'},
   GLOBAL_REIT: {name:'글로벌 리츠 (전체)', ticker:'RWO',       cur:'USD', grp:'대안자산', proxy:'VNQ'},
   CASH:        {name:'현금 (콜금리)',        ecos:{stat:'722Y001',item:'0101000',isCash:true}, cur:'KRW', grp:'대안자산'},
