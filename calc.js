@@ -206,10 +206,80 @@ function runEngine(portfolioRows, assetDataMap, fxMap, settings){
   // Arithmetic mean
   const arithMean = annualRets.reduce((s,r)=>s+r.ret,0)/annualRets.length;
 
+  // Standalone asset metrics — portfolio allocation/rebalancing 과 독립적
+  const assetMetrics = assets.map(a => {
+    const empty = {standaloneCagr:0, standaloneVol:0,
+      standaloneBest:{ret:-Infinity,y:'—'}, standaloneWorst:{ret:Infinity,y:'—'}};
+
+    if(a.data.isReturn) {
+      // return-based assets (bonds, cash): priceMap 값이 월별 수익률
+      const mData = [];
+      months.forEach(({y,m}) => {
+        const ret = a.data.priceMap[`${y}-${m}`];
+        if(ret != null) mData.push({t:y*12+m, y, ret});
+      });
+      if(!mData.length) return empty;
+
+      let compound = 1;
+      const byYr = {};
+      mData.forEach(({y,ret}) => {
+        compound *= (1+ret);
+        byYr[y] = (byYr[y]||1) * (1+ret);
+      });
+      const yr = (mData[mData.length-1].t - mData[0].t) / 12;
+      const cagr = yr>0 ? (Math.pow(compound,1/yr)-1)*100 : 0;
+
+      const rArr = mData.map(d=>d.ret);
+      const avgR = rArr.reduce((s,v)=>s+v,0)/(rArr.length||1);
+      const vol = Math.sqrt(rArr.reduce((s,v)=>s+(v-avgR)**2,0)/(rArr.length||1))*Math.sqrt(12)*100;
+
+      const aRets = Object.entries(byYr).map(([y,val])=>({y:+y, ret:(val-1)*100}));
+      return {
+        standaloneCagr: cagr, standaloneVol: vol,
+        standaloneBest:  aRets.reduce((a,b)=>a.ret>b.ret?a:b, {ret:-Infinity,y:'—'}),
+        standaloneWorst: aRets.reduce((a,b)=>a.ret<b.ret?a:b, {ret:Infinity, y:'—'}),
+      };
+    } else {
+      // price-based assets: priceMap 원가격 + FX 직접 적용 (carry-forward 없음)
+      const mData = [];
+      months.forEach(({y,m}) => {
+        const rawP = a.data.priceMap[`${y}-${m}`];
+        if(!rawP || !isFinite(rawP)) return;
+        const p = a.def.cur==='USD' ? rawP*getFX(y,m) : rawP;
+        mData.push({t:y*12+m, y, p});
+      });
+      if(!mData.length) return empty;
+
+      const yr = (mData[mData.length-1].t - mData[0].t) / 12;
+      const cagr = yr>0 ? (Math.pow(mData[mData.length-1].p/mData[0].p,1/yr)-1)*100 : 0;
+
+      // 연속된 월 사이 수익률만 vol에 반영
+      const mRets = [];
+      for(let i=1;i<mData.length;i++){
+        if(mData[i].t===mData[i-1].t+1)
+          mRets.push((mData[i].p-mData[i-1].p)/mData[i-1].p);
+      }
+      const avgR = mRets.length ? mRets.reduce((s,v)=>s+v,0)/mRets.length : 0;
+      const vol = mRets.length ? Math.sqrt(mRets.reduce((s,v)=>s+(v-avgR)**2,0)/mRets.length)*Math.sqrt(12)*100 : 0;
+
+      const byYr = {};
+      mData.forEach(({y,p}) => {
+        if(!byYr[y]) byYr[y]={s:p,e:p}; else byYr[y].e=p;
+      });
+      const aRets = Object.entries(byYr).map(([y,{s,e}])=>({y:+y, ret:(e-s)/s*100}));
+      return {
+        standaloneCagr: cagr, standaloneVol: vol,
+        standaloneBest:  aRets.reduce((a,b)=>a.ret>b.ret?a:b, {ret:-Infinity,y:'—'}),
+        standaloneWorst: aRets.reduce((a,b)=>a.ret<b.ret?a:b, {ret:Infinity, y:'—'}),
+      };
+    }
+  });
+
   return {
     monthlyValues, assets, firstDate, cagr, annualVol, sharpe, sortino, mdd, mddEnd,
     annualRets, bestYear, worstYear, arithMean, downDev,
     totalReturn: (fv-iv)/iv*100, iv, fv, yrs,
+    assetMetrics,
   };
 }
 

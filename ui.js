@@ -521,24 +521,12 @@ function renderResults(results, ports, warnings, settings){
   // ── 8. Asset performance ───────────────────────────────────
   const assetPerfHTML = results.map((r,pi)=>{
     if(!r) return '';
-    const assetRows = r.assets.map(a=>{
-      // Compute asset-level returns from assetVals
-      const idx = r.assets.indexOf(a);
-      const vals = r.monthlyValues.map(m=>m.assetVals[idx]);
-      const iv0 = vals.find(v=>v>0)||0;
-      const fv0 = [...vals].reverse().find(v=>v>0)||0;
-      const yr0 = r.monthlyValues.length/12;
-      const cagr0 = iv0&&fv0&&yr0>0 ? (Math.pow(fv0/iv0,1/yr0)-1)*100 : 0;
-      const rets0 = [];
-      for(let i=1;i<vals.length;i++) if(vals[i-1]>0) rets0.push((vals[i]-vals[i-1])/vals[i-1]);
-      const avg0 = rets0.reduce((s,v)=>s+v,0)/(rets0.length||1);
-      const vol0 = Math.sqrt(rets0.reduce((s,v)=>s+(v-avg0)**2,0)/(rets0.length||1))*Math.sqrt(12)*100;
-      // Annual vals
-      const byYr = {};
-      r.monthlyValues.forEach((p,mi)=>{ if(vals[mi]>0){ if(!byYr[p.y])byYr[p.y]={s:vals[mi],e:vals[mi]}; else byYr[p.y].e=vals[mi]; } });
-      const aRets = Object.entries(byYr).map(([y,{s,e}])=>({y,ret:(e-s)/s*100}));
-      const best = aRets.reduce((a,b)=>a.ret>b.ret?a:b,{ret:-Infinity,y:'—'});
-      const worst = aRets.reduce((a,b)=>a.ret<b.ret?a:b,{ret:Infinity,y:'—'});
+    const assetRows = r.assets.map((a,idx)=>{
+      const sm = r.assetMetrics[idx];
+      const cagr0 = sm.standaloneCagr;
+      const vol0  = sm.standaloneVol;
+      const best  = sm.standaloneBest;
+      const worst = sm.standaloneWorst;
       return `<tr>
         <td>${ASSET_DEF[a.id]?.name||a.id}</td>
         <td class="${cagr0>=0?'positive':'negative'}">${pct(cagr0)}</td>
