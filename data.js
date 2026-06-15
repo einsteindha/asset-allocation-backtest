@@ -142,6 +142,23 @@ async function fetchYahooPrices(ticker, startYear, endYear){
     const d = new Date(t*1000);
     priceMap[`${d.getFullYear()}-${d.getMonth()+1}`] = closes[i];
   });
+  // 인접 ±3개월 중앙값 대비 10배 이상 벗어난 값 제거 (API 일시 오류 방어)
+  const sKeys = Object.keys(priceMap).sort((a,b)=>{
+    const [ay,am]=a.split('-').map(Number),[by,bm]=b.split('-').map(Number);
+    return (ay*12+am)-(by*12+bm);
+  });
+  sKeys.forEach((k,i)=>{
+    const nb=[];
+    for(let d=-3;d<=3;d++){
+      if(d===0||!sKeys[i+d]||!priceMap[sKeys[i+d]]) continue;
+      nb.push(priceMap[sKeys[i+d]]);
+    }
+    if(nb.length>=2){
+      const med=nb.slice().sort((a,b)=>a-b)[Math.floor(nb.length/2)];
+      const r=priceMap[k]/med;
+      if(r>10||r<0.1) delete priceMap[k];
+    }
+  });
   const first = new Date(ts[0]*1000);
   return {priceMap, firstYear:first.getFullYear(), firstMonth:first.getMonth()+1};
 }
