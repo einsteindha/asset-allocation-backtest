@@ -888,5 +888,138 @@ function updateStep(i,st){
   if(st==='done') el.querySelector('.step-dot').style.background='var(--green)';
 }
 
+// ── Prompt Guide ───────────────────────────────────────────────
+const AI_PROMPT = `[역할]
+당신은 자산배분 포트폴리오 분석 전문가입니다.
+첨부한 계좌 화면 이미지를 분석하여, 아래 지정된 자산군 분류 기준에 맞게
+각 보유 종목을 매핑하고 비중을 계산해주세요.
+
+[목적]
+이 분석 결과는 자산배분 백테스트 도구에 직접 입력할 예정입니다.
+따라서 반드시 아래 자산 목록 중 해당하는 항목으로만 분류해야 합니다.
+
+[사용 가능한 자산 분류 목록]
+
+■ 국내 주식
+- KOSPI 전체
+- KOSPI 대형주
+- 코스닥
+- 국내 배당주
+- 국내 가치주
+
+■ 해외 주식 - 미국
+- 미국 전체 주식시장 (VTI)
+- 미국 대형주 / S&P500 (SPY, ^GSPC)
+- 미국 대형 성장주 (VUG)
+- 미국 대형 가치주 (VTV)
+- 미국 중형주 (VO)
+- 미국 소형주 (IWM, ^RUT)
+- 미국 소형 가치주 (VBR)
+
+■ 해외 주식 - 글로벌
+- 선진국 주식 미국 제외 (VEA, EFA)
+- 선진국 주식 미국 포함 (VT)
+- 유럽 주식 (VGK)
+- 일본 주식 (EWJ)
+- 이머징 마켓 (VWO, EEM)
+
+■ 국내 채권
+- 국내 단기채 1년
+- 국내 중기채 3년
+- 국내 장기채 10년
+- 국내 회사채 AA-
+
+■ 해외 채권
+- 미국 단기국채 (SHY)
+- 미국 중기국채 (IEF)
+- 미국 장기국채 (TLT)
+- 미국 전체 채권시장 (BND, AGG)
+- TIPS 물가연동채 (TIP)
+- 글로벌 채권 (BNDW)
+
+■ 대안자산
+- 금 (GLD, IAU)
+- 원자재 (DJP, GSG)
+- 미국 리츠 (VNQ)
+- 국내 리츠
+- 글로벌 리츠 미국 제외 (VNQI)
+- 글로벌 리츠 전체 (RWO)
+- 현금 (MMF, CMA, 예금 등)
+
+[분석 지침]
+
+1. 계좌 화면에서 각 보유 종목명, 티커(있다면), 평가금액 또는 보유수량을 읽어주세요.
+2. 각 종목을 위 분류 목록 중 가장 적합한 항목 하나에 매핑해주세요.
+3. 비중(%) 계산 시 통화가 혼재된 경우(원화/달러 등),
+   각 통화 내에서 비중을 먼저 계산한 뒤
+   전체 자산 중 해당 통화 계좌가 차지하는 금액 비율을 감안해
+   통합 비중을 산출해주세요.
+   환율 환산은 하지 않아도 됩니다 — 최종 출력은 비중(%)만 사용합니다.
+4. 동일 자산군에 여러 종목이 있으면 합산해주세요.
+5. 위 목록에 해당하지 않는 종목(개별주, 파생상품 등)은 별도로 표시하고 분석에서 제외해주세요.
+6. 비중 합계가 100%가 되도록 미분류 제외 후 재계산해주세요.
+7. 불확실한 매핑은 근거와 함께 설명해주세요.
+
+[출력 형식]
+
+## 종목별 매핑 결과
+| 계좌 종목명 | 평가금액 | 통화 | 매핑 자산군 | 비고 |
+|---|---|---|---|---|
+| ... | ... | ... | ... | ... |
+
+## 자산군별 비중 요약
+| 자산군 | 비중(%) |
+|---|---|
+| ... | ... |
+| **합계** | **100%** |
+
+## 백테스트 도구 입력용 정리
+(해당 항목만 기재, 비중 0%인 항목은 생략)
+- KOSPI 전체: ___%
+- 미국 대형주: ___%
+- 금: ___%
+...
+
+## 분류 불가 종목
+(위 목록에 해당하지 않아 제외된 종목 목록)
+
+## 참고사항
+(불확실한 매핑 근거, 주의사항 등)`;
+
+function _pgNoScroll(e){
+  if(e.target.closest('.pg-body')) return;
+  e.preventDefault();
+}
+function openPg(){
+  document.getElementById('pgPromptText').textContent = AI_PROMPT;
+  document.body.dataset.pgScrollY = window.scrollY;
+  document.getElementById('pgOverlay').classList.add('open');
+  if('ontouchstart' in window){
+    document.addEventListener('touchmove', _pgNoScroll, {passive:false});
+  } else {
+    document.body.style.overflow = 'hidden';
+  }
+}
+function closePg(){
+  document.getElementById('pgOverlay').classList.remove('open');
+  if('ontouchstart' in window){
+    document.removeEventListener('touchmove', _pgNoScroll);
+  } else {
+    document.body.style.overflow = '';
+  }
+  window.scrollTo(0, parseInt(document.body.dataset.pgScrollY||'0'));
+}
+function handlePgOverlayClick(e){
+  if(e.target === document.getElementById('pgOverlay')) closePg();
+}
+function copyPrompt(){
+  navigator.clipboard.writeText(AI_PROMPT).then(()=>{
+    const btn = document.getElementById('pgCopyBtn');
+    btn.textContent = '✓ 복사 완료!';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = '📋 프롬프트 복사하기'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
 // ── Utilities ──────────────────────────────────────────────────
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
