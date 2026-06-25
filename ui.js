@@ -716,7 +716,8 @@ function buildCharts(results, ports, sortedMonths, settings){
       if(!r) return;
       const wrap = document.createElement('div');
       wrap.className = 'donut-wrap';
-      wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div style="position:relative;height:220px"><canvas id="donut${pi}"></canvas></div>`;
+      const donutH = window.innerWidth <= 700 ? 140 : 220;
+      wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div style="position:relative;height:${donutH}px"><canvas id="donut${pi}"></canvas></div>`;
       donutRow.appendChild(wrap);
     });
     results.forEach((r,pi)=>{
