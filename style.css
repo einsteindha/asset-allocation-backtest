@@ -196,3 +196,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pg-copy-btn:hover{background:var(--border)}
 .pg-copy-btn.copied{color:var(--green)}
 .pg-tip{margin-top:1rem;font-size:.75rem;color:var(--amber);background:var(--amber-bg);border-radius:var(--radius);padding:.5rem .75rem;line-height:1.6}
+/* Header action buttons */
+.header-right{display:flex;align-items:center;gap:.4rem}
+.hdr-btn{padding:.45rem .9rem;border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:var(--radius);font-size:.78rem;font-weight:500;cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap}
+.hdr-btn:hover{background:var(--surface2);color:var(--text)}
+.hdr-btn-print{border-color:rgba(196,147,63,.4);color:var(--gold);background:rgba(196,147,63,.06)}
+.hdr-btn-print:hover{background:rgba(196,147,63,.14)}
+@media(max-width:600px){.hdr-btn{padding:.4rem .6rem;font-size:.72rem}}
+@media print{
+  .app-header,.modal-overlay,.pg-overlay,.gear-popup,.hdr-btn,.settings-open-btn{display:none!important}
+  .main{padding:.5rem!important;overflow:visible!important}
+  .empty-state,.loading-state{display:none!important}
+  #resultsArea{display:block!important}
+  .section-card{break-inside:avoid;box-shadow:none!important}
+}

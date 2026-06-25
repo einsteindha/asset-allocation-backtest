@@ -1015,5 +1015,36 @@ function copyPrompt(){
   });
 }
 
+// ── Save / Load / Print ────────────────────────────────────────
+const _BT_KEY = 'bt-alloc-v1';
+
+function saveData(){
+  try{
+    const d = {v:1, settings:{...state.settings}, portfolios:state.portfolios.map(p=>({...p})), rows:state.rows.map(r=>({...r, weights:[...r.weights]}))};
+    localStorage.setItem(_BT_KEY, JSON.stringify(d));
+    alert('저장됐습니다.');
+  }catch(e){ alert('저장 실패: '+e.message); }
+}
+
+function loadData(){
+  const raw = localStorage.getItem(_BT_KEY);
+  if(!raw){ alert('저장된 데이터가 없습니다.'); return; }
+  try{
+    const d = JSON.parse(raw);
+    if(d.settings) Object.assign(state.settings, d.settings);
+    if(d.portfolios) state.portfolios = d.portfolios.map(p=>({...p}));
+    if(d.rows) state.rows = d.rows.map(r=>({...r, weights:[...r.weights]}));
+    alert('불러오기 완료. 포트폴리오 설정을 열어 확인 후 실행하세요.');
+  }catch(e){ alert('불러오기 실패: '+e.message); }
+}
+
+function doPrint(){
+  if(document.getElementById('resultsArea').style.display==='none'){
+    alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
+    return;
+  }
+  window.print();
+}
+
 // ── Utilities ──────────────────────────────────────────────────
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
