@@ -683,6 +683,7 @@ function renderResults(results, ports, warnings, settings){
 
   document.getElementById('resultsArea').style.display = 'block';
   document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('headerActions').style.display = 'flex';
 
   // Build charts after DOM is ready
   setTimeout(()=>buildCharts(results, ports, sortedMonths, settings), 80);

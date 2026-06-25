@@ -197,6 +197,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pg-copy-btn.copied{color:var(--green)}
 .pg-tip{margin-top:1rem;font-size:.75rem;color:var(--amber);background:var(--amber-bg);border-radius:var(--radius);padding:.5rem .75rem;line-height:1.6}
 /* Header action buttons */
+.header-actions{display:flex;align-items:center;gap:.5rem}
 .header-right{display:flex;align-items:center;gap:.4rem}
 .hdr-btn{padding:.45rem .9rem;border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:var(--radius);font-size:.78rem;font-weight:500;cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap}
 .hdr-btn:hover{background:var(--surface2);color:var(--text)}
