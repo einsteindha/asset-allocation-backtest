@@ -29,9 +29,9 @@
     </div>
     <div class="header-actions">
       <div class="header-right" id="headerActions" style="display:none">
-        <button class="hdr-btn" onclick="saveData()">💾 저장</button>
-        <button class="hdr-btn" onclick="loadData()">📂 불러오기</button>
-        <button class="hdr-btn hdr-btn-print" onclick="doPrint()">🖨️ 출력</button>
+        <button class="hdr-btn mobile-hide" onclick="saveData()">💾 저장</button>
+        <button class="hdr-btn mobile-hide" onclick="loadData()">📂 불러오기</button>
+        <button class="hdr-btn hdr-btn-print" onclick="_mPrint(doPrint)">🖨️ 출력</button>
       </div>
       <button class="settings-open-btn" onclick="openModal()">⚙️ <span>포트폴리오 설정</span></button>
     </div>
@@ -112,5 +112,18 @@
 <script src="data.js"></script>
 <script src="calc.js"></script>
 <script src="ui.js"></script>
+<script>
+function _mPrint(fn){
+  if(window.matchMedia('(max-width:768px)').matches){
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;text-align:center;max-width:280px;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+    t.innerHTML='🖨️ 출력·PDF 저장은<br><b>PC 웹 브라우저</b>에서 이용해 주세요.';
+    document.body.appendChild(t);
+    setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},3000);
+    return;
+  }
+  fn();
+}
+</script>
 </body>
 </html>
