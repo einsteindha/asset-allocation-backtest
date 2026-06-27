@@ -705,6 +705,7 @@ function buildCharts(results, ports, sortedMonths, settings){
   const tc = isDark?'#5C5A54':'#A09E97';
   const chartDefaults = {
     responsive:true, maintainAspectRatio:false,
+    animation:false,
     plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false}},
   };
 
@@ -731,6 +732,7 @@ function buildCharts(results, ports, sortedMonths, settings){
         data:{labels, datasets:[{data, backgroundColor:donutColors.slice(0,labels.length), borderWidth:0}]},
         options:{
           responsive:true, maintainAspectRatio:false,
+          animation:false,
           plugins:{
             legend:{display:true,position:'right',labels:{color:tc,font:{size:10},boxWidth:12,padding:6}},
             tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}%`}},
@@ -1045,25 +1047,27 @@ function doPrint(){
     alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
     return;
   }
-  // canvas → 절대위치 img 오버레이 방식
-  // display:none/height 변경 없이 visibility:hidden만 사용 → Chart.js ResizeObserver 미트리거
-  // → 연속 출력 시 canvas 재렌더링 중 빈 이미지 캡처 문제 방지
-  var swaps=[];
-  document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
-    try{
-      var img=document.createElement('img');
-      img.src=cv.toDataURL('image/png');
-      img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block';
-      cv.parentNode.appendChild(img);
-      cv.style.visibility='hidden';
-      swaps.push({cv:cv,img:img});
-    }catch(e){}
+  // Chart.js는 animation:false여도 resize 후 rAF로 재렌더링을 예약함
+  // rAF 2회 대기 → 1번째: Chart.js pending 렌더 실행, 2번째: 브라우저 페인트 완료
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var swaps=[];
+      document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
+        try{
+          var img=document.createElement('img');
+          img.src=cv.toDataURL('image/png');
+          img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block';
+          cv.parentNode.appendChild(img);
+          cv.style.visibility='hidden';
+          swaps.push({cv:cv,img:img});
+        }catch(e){}
+      });
+      var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
+      window.print();
+      document.title=_t;
+      swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
+    });
   });
-  var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
-  window.print();
-  document.title=_t;
-  // 원복: canvas 다시 보이게, overlay img 제거
-  swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
 }
 
 // ── Utilities ──────────────────────────────────────────────────
