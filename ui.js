@@ -857,11 +857,11 @@ function buildCharts(results, ports, sortedMonths, settings){
     donuts.forEach(function(c){
       try{
         c.options.plugins.legend.position='bottom';
-        c.options.plugins.legend.labels={font:{size:8},padding:3,boxWidth:8};
+        c.options.plugins.legend.labels={color:tc,font:{size:8},padding:3,boxWidth:8};
         c.update('none');
         window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas);
         c.options.plugins.legend.position='right';
-        c.options.plugins.legend.labels={font:{size:10},padding:6,boxWidth:12};
+        c.options.plugins.legend.labels={color:tc,font:{size:10},padding:6,boxWidth:12};
         c.update('none');
       }catch(e){}
     });
