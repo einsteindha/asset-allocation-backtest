@@ -208,7 +208,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .print-header{display:none}
 @media print{
   body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
-  .app-header,.modal-overlay,.pg-overlay,.gear-popup,.hdr-btn,.settings-open-btn,.log-toggle{display:none!important}
+  .app-header,.modal-overlay,.pg-overlay,.gear-popup,.hdr-btn,.settings-open-btn,.log-toggle,.note-banner{display:none!important}
   .main{padding:.5rem!important;overflow:visible!important}
   .empty-state,.loading-state{display:none!important}
   #resultsArea{display:block!important}
