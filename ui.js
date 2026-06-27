@@ -683,9 +683,9 @@ function renderResults(results, ports, warnings, settings){
 
   document.getElementById('resultsArea').style.display = 'block';
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('headerActions').style.display = 'flex';
+  document.getElementById('headerActions').style.display = 'none'; // 차트 렌더 완료 후 표시
 
-  // Build charts after DOM is ready
+  // Build charts after DOM is ready (80ms: 브라우저 레이아웃 완료 대기)
   setTimeout(()=>buildCharts(results, ports, sortedMonths, settings), 80);
 }
 
@@ -849,6 +849,9 @@ function buildCharts(results, ports, sortedMonths, settings){
     });
     _charts.push(c);
   }
+
+  // 모든 차트 렌더 완료 후 출력 버튼 표시 (이전에 표시하면 빈 캔버스 캡처 가능)
+  document.getElementById('headerActions').style.display = 'flex';
 }
 
 function pctFmt(v){ return (v>=0?'+':'')+v.toFixed(2)+'%'; }
