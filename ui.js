@@ -856,22 +856,9 @@ function buildCharts(results, ports, sortedMonths, settings){
   // ResizeObserver+draw 완전 완료 후 전체 캡처 → 버튼 활성화 (목적자금 시뮬레이터 동일 패턴)
   setTimeout(function(){
     window._btPrintImgs = {};
-    // 도넛: 하단 레전드로 캡처 후 원복
-    var donuts = _charts.filter(function(c){ return c.canvas && c.canvas.id.startsWith('donut'); });
-    donuts.forEach(function(c){
-      try{
-        c.options.plugins.legend.position='bottom';
-        c.options.plugins.legend.labels={color:tc,font:{size:8},padding:3,boxWidth:8};
-        c.update('none');
-        window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas);
-        c.options.plugins.legend.position='right';
-        c.options.plugins.legend.labels={color:tc,font:{size:10},padding:6,boxWidth:12};
-        c.update('none');
-      }catch(e){}
-    });
-    // 라인/바/낙폭 차트: 현재 상태 캡처
-    _charts.filter(function(c){ return c.canvas && !c.canvas.id.startsWith('donut'); }).forEach(function(c){
-      try{ window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas); }catch(e){}
+    // 전체 차트 현재 상태 그대로 캡처 (도넛 레전드 오른쪽 유지)
+    _charts.forEach(function(c){
+      try{ if(c.canvas) window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas); }catch(e){}
     });
     document.getElementById('headerActions').style.display='flex';
   },500);
