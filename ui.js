@@ -718,7 +718,7 @@ function buildCharts(results, ports, sortedMonths, settings){
       const wrap = document.createElement('div');
       wrap.className = 'donut-wrap';
       const donutH = window.innerWidth <= 700 ? 140 : 220;
-      wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div style="position:relative;height:${donutH}px"><canvas id="donut${pi}"></canvas></div>`;
+      wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div class="donut-chart-wrap" style="position:relative;height:${donutH}px"><canvas id="donut${pi}"></canvas></div>`;
       donutRow.appendChild(wrap);
     });
     results.forEach((r,pi)=>{
@@ -1047,27 +1047,52 @@ function doPrint(){
     alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
     return;
   }
-  // Chart.js는 animation:false여도 resize 후 rAF로 재렌더링을 예약함
-  // rAF 2회 대기 → 1번째: Chart.js pending 렌더 실행, 2번째: 브라우저 페인트 완료
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      var swaps=[];
-      document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
-        try{
-          var img=document.createElement('img');
-          img.src=cv.toDataURL('image/png');
-          img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block';
-          cv.parentNode.appendChild(img);
-          cv.style.visibility='hidden';
-          swaps.push({cv:cv,img:img});
-        }catch(e){}
-      });
-      var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
-      window.print();
-      document.title=_t;
-      swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
-    });
+  var btn=document.querySelector('.hdr-btn-print');
+  if(btn){btn.disabled=true;btn.textContent='준비 중...';}
+
+  // 도넛 범례를 아래로 변경 (좁은 가로 공간에서 원형 유지)
+  var donutCharts=_charts.filter(function(c){return c.canvas&&c.canvas.id&&c.canvas.id.startsWith('donut');});
+  donutCharts.forEach(function(c){
+    c.options.plugins.legend.position='bottom';
+    c.options.plugins.legend.labels.font={size:8};
+    c.options.plugins.legend.labels.padding=3;
+    c.options.plugins.legend.labels.boxWidth=8;
   });
+
+  // resize() → animation:false 상태에서 canvas에 즉시 동기 렌더링
+  _charts.forEach(function(c){try{c.resize();}catch(e){}});
+
+  // 150ms 대기: resize/update 내부 처리 완료 보장 (rAF보다 안정적)
+  setTimeout(function(){
+    var swaps=[];
+    document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
+      try{
+        var isDonut=cv.id&&cv.id.startsWith('donut');
+        var img=document.createElement('img');
+        img.src=cv.toDataURL('image/png');
+        // 도넛: object-fit:contain (원형 유지), 라인/바: fill (비율 변형 미미)
+        img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block'
+          +(isDonut?';object-fit:contain':'');
+        cv.parentNode.appendChild(img);
+        cv.style.visibility='hidden';
+        swaps.push({cv:cv,img:img});
+      }catch(e){}
+    });
+    var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
+    window.print();
+    document.title=_t;
+    swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
+
+    // 도넛 범례 원복
+    donutCharts.forEach(function(c){
+      c.options.plugins.legend.position='right';
+      c.options.plugins.legend.labels.font={size:10};
+      c.options.plugins.legend.labels.padding=6;
+      c.options.plugins.legend.labels.boxWidth=12;
+    });
+    _charts.forEach(function(c){try{c.resize();}catch(e){}});
+    if(btn){btn.disabled=false;btn.textContent='🖨️ 출력';}
+  },150);
 }
 
 // ── Utilities ──────────────────────────────────────────────────
