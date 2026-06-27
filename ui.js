@@ -850,8 +850,23 @@ function buildCharts(results, ports, sortedMonths, settings){
     _charts.push(c);
   }
 
-  // 모든 차트 렌더 완료 후 출력 버튼 표시 (이전에 표시하면 빈 캔버스 캡처 가능)
-  document.getElementById('headerActions').style.display = 'flex';
+  // ResizeObserver+draw 완전 완료 후 캡처 → 버튼 활성화 (목적자금 시뮬레이터 동일 패턴)
+  setTimeout(function(){
+    window._btPrintImgs = {};
+    var donuts = _charts.filter(function(c){ return c.canvas && c.canvas.id.startsWith('donut'); });
+    donuts.forEach(function(c){
+      try{
+        c.options.plugins.legend.position='bottom';
+        c.options.plugins.legend.labels={font:{size:8},padding:3,boxWidth:8};
+        c.update('none');
+        window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas);
+        c.options.plugins.legend.position='right';
+        c.options.plugins.legend.labels={font:{size:10},padding:6,boxWidth:12};
+        c.update('none');
+      }catch(e){}
+    });
+    document.getElementById('headerActions').style.display='flex';
+  },500);
 }
 
 function pctFmt(v){ return (v>=0?'+':'')+v.toFixed(2)+'%'; }
@@ -1045,57 +1060,44 @@ function loadData(){
   }catch(e){ alert('불러오기 실패: '+e.message); }
 }
 
+// canvas → temp canvas 복사 후 PNG (직접 toDataURL보다 브라우저 호환성 높음)
+function _capturePrint(cv){
+  if(!cv||!cv.getContext)return'';
+  var w=cv.width,h=cv.height;
+  if(!w||!h)return'';
+  var tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
+  var ctx=tmp.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
+  ctx.drawImage(cv,0,0,w,h);
+  return tmp.toDataURL('image/png');
+}
+
 function doPrint(){
   if(document.getElementById('resultsArea').style.display==='none'){
     alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
     return;
   }
-  var btn=document.querySelector('.hdr-btn-print');
-  if(btn){btn.disabled=true;btn.textContent='준비 중...';}
-
-  // 도넛 범례를 아래로 변경 (좁은 가로 공간에서 원형 유지)
-  var donutCharts=_charts.filter(function(c){return c.canvas&&c.canvas.id&&c.canvas.id.startsWith('donut');});
-  donutCharts.forEach(function(c){
-    c.options.plugins.legend.position='bottom';
-    c.options.plugins.legend.labels.font={size:8};
-    c.options.plugins.legend.labels.padding=3;
-    c.options.plugins.legend.labels.boxWidth=8;
+  // 도넛: buildCharts 시점에 하단범례로 pre-capture된 이미지 사용
+  // 라인/바: 현재 canvas 상태 live capture (로그스케일 토글 반영)
+  var imgs=window._btPrintImgs||{};
+  var swaps=[];
+  document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
+    try{
+      var isDonut=cv.id&&cv.id.startsWith('donut');
+      var src=isDonut?(imgs[cv.id]||_capturePrint(cv)):_capturePrint(cv);
+      if(!src)return;
+      var img=document.createElement('img');
+      img.src=src;
+      img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block'+(isDonut?';object-fit:contain':'');
+      cv.parentNode.appendChild(img);
+      cv.style.visibility='hidden';
+      swaps.push({cv:cv,img:img});
+    }catch(e){}
   });
-
-  // resize() → animation:false 상태에서 canvas에 즉시 동기 렌더링
-  _charts.forEach(function(c){try{c.resize();}catch(e){}});
-
-  // 150ms 대기: resize/update 내부 처리 완료 보장 (rAF보다 안정적)
-  setTimeout(function(){
-    var swaps=[];
-    document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
-      try{
-        var isDonut=cv.id&&cv.id.startsWith('donut');
-        var img=document.createElement('img');
-        img.src=cv.toDataURL('image/png');
-        // 도넛: object-fit:contain (원형 유지), 라인/바: fill (비율 변형 미미)
-        img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block'
-          +(isDonut?';object-fit:contain':'');
-        cv.parentNode.appendChild(img);
-        cv.style.visibility='hidden';
-        swaps.push({cv:cv,img:img});
-      }catch(e){}
-    });
-    var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
-    window.print();
-    document.title=_t;
-    swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
-
-    // 도넛 범례 원복
-    donutCharts.forEach(function(c){
-      c.options.plugins.legend.position='right';
-      c.options.plugins.legend.labels.font={size:10};
-      c.options.plugins.legend.labels.padding=6;
-      c.options.plugins.legend.labels.boxWidth=12;
-    });
-    _charts.forEach(function(c){try{c.resize();}catch(e){}});
-    if(btn){btn.disabled=false;btn.textContent='🖨️ 출력';}
-  },150);
+  var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
+  window.print();
+  document.title=_t;
+  swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
 }
 
 // ── Utilities ──────────────────────────────────────────────────
