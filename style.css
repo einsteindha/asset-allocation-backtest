@@ -238,5 +238,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   .heatmap-row{flex-direction:column;gap:1rem}
   .heatmap-row>div{flex:none;min-width:0;overflow-x:visible;break-inside:avoid}
   .heatmap-scroll{overflow-x:visible}
+  /* 열 헤더 세로 회전 → 열 폭을 숫자 기준으로만 확보해 우측 짤림 방지 */
+  .hm-col-hdr{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:.5rem}
+  .heatmap-table{font-size:.5rem!important}
+  .heatmap-table th,.heatmap-table td{min-width:22px!important;padding:.12rem .1rem!important;font-size:.5rem!important}
+  .heatmap-table th:first-child{min-width:0!important;text-align:right;padding-right:.35rem!important}
 }
 @media(max-width:768px){.mobile-hide{display:none!important}}

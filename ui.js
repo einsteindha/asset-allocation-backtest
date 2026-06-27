@@ -557,7 +557,7 @@ function renderResults(results, ports, warnings, settings){
       }
       return rets;
     });
-    let hRows = `<tr><th></th>${labels.map(l=>`<th>${escHtml(l)}</th>`).join('')}</tr>`;
+    let hRows = `<tr><th></th>${labels.map(l=>`<th><span class="hm-col-hdr">${escHtml(l)}</span></th>`).join('')}</tr>`;
     labels.forEach((l,i)=>{
       hRows += `<tr><th>${escHtml(l)}</th>`;
       labels.forEach((_,j)=>{
