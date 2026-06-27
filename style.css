@@ -208,17 +208,26 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .print-header{display:none}
 @media print{
   body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
-  .app-header,.modal-overlay,.pg-overlay,.gear-popup,.hdr-btn,.settings-open-btn{display:none!important}
+  .app-header,.modal-overlay,.pg-overlay,.gear-popup,.hdr-btn,.settings-open-btn,.log-toggle{display:none!important}
   .main{padding:.5rem!important;overflow:visible!important}
   .empty-state,.loading-state{display:none!important}
   #resultsArea{display:block!important}
-  .section-card{break-inside:avoid;box-shadow:none!important}
+  /* 차트가 들어간 카드는 페이지 분리 허용 — break-inside:avoid 하면 한 페이지에 억지로 욱여넣다 잘림 */
+  .section-card{break-inside:auto;box-shadow:none!important;margin-bottom:.75rem!important}
+  /* 차트 제목은 차트 이미지와 함께 유지 */
+  .section-title{break-after:avoid}
+  /* chart-wrap 고정 높이 해제 — JS에서 inline height를 auto로 바꾸지만 CSS로도 보장 */
+  .chart-wrap{height:auto!important}
+  /* 출력용 차트 이미지 */
+  .chart-wrap img,.donut-wrap img{width:100%!important;height:auto!important;display:block!important}
   /* Print header */
   .print-header{display:flex;align-items:center;gap:1.25rem;border-bottom:1px solid var(--border2);padding-bottom:.75rem;margin-bottom:1rem}
   .print-logo{font-family:var(--display);font-size:18px;font-weight:400;color:var(--text)}
   .print-logo-fi{color:var(--gold);font-style:italic}
   .print-page-title{font-family:var(--serif);font-size:1rem;font-weight:500}
   .print-page-sub{font-size:.75rem;color:var(--text2)}
+  /* 성과 테이블 overflow 해제 */
+  .section-card>div[style*="overflow-x"]{overflow-x:visible!important}
   /* Heatmap: stack vertically in print */
   .heatmap-row{flex-direction:column;gap:1rem}
   .heatmap-row>div{flex:none;min-width:0;overflow-x:visible}

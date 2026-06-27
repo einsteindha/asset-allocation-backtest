@@ -1045,7 +1045,26 @@ function doPrint(){
     alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
     return;
   }
+  // 캔버스를 이미지로 교체 (canvas는 인쇄 시 잘리거나 해상도가 맞지 않아 이미지로 변환 후 출력)
+  var swaps=[];
+  document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
+    try{
+      var par=cv.parentNode;
+      var img=document.createElement('img');
+      img.src=cv.toDataURL('image/png');
+      img.style.cssText='width:100%;height:auto;display:block';
+      par.insertBefore(img,cv);
+      cv.style.display='none';
+      var oldH=par.style.height;
+      if(oldH) par.style.height='auto';
+      swaps.push({cv:cv,img:img,par:par,oldH:oldH});
+    }catch(e){}
+  });
+  var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
   window.print();
+  document.title=_t;
+  // 캔버스 원복
+  swaps.forEach(function(s){s.cv.style.display='';s.img.remove();if(s.oldH)s.par.style.height=s.oldH;});
 }
 
 // ── Utilities ──────────────────────────────────────────────────
