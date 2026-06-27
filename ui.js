@@ -720,7 +720,8 @@ function buildCharts(results, ports, sortedMonths, settings){
       if(!r) return;
       const wrap = document.createElement('div');
       wrap.className = 'donut-wrap';
-      const donutH = window.innerWidth <= 700 ? 140 : 220;
+      // 자산 수만큼 레전드 높이 확보 (항목당 ~18px) → 우측 레전드 한 열로 유지
+      const donutH = window.innerWidth <= 700 ? 140 : Math.max(220, r.assets.length * 18 + 20);
       wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div class="donut-chart-wrap" style="position:relative;height:${donutH}px"><canvas id="donut${pi}"></canvas></div>`;
       donutRow.appendChild(wrap);
     });
