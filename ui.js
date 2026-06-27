@@ -1080,17 +1080,28 @@ function doPrint(){
       if(!src)return;
       var img=document.createElement('img');
       img.src=src;
-      // canvas를 img로 완전 대체 (overlay 아님) → print 렌더러가 canvas 무시
       img.style.cssText='width:100%;height:100%;display:block'+(isDonut?';object-fit:contain':'');
       cv.parentNode.insertBefore(img,cv);
       cv.style.display='none';
       swaps.push({cv:cv,img:img});
     }catch(e){}
   });
-  var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
-  window.print();
-  document.title=_t;
-  swaps.forEach(function(s){s.cv.style.display='';s.img.remove();});
+
+  function _restore(){ swaps.forEach(function(s){s.cv.style.display='';s.img.remove();}); }
+  function _execPrint(){
+    var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
+    window.print();
+    document.title=_t;
+    _restore();
+  }
+
+  // base64 이미지 디코딩 완료 후 print — 디코딩 전 호출하면 첫 출력이 빈 화면
+  var pending=swaps.length;
+  if(!pending){ _execPrint(); return; }
+  swaps.forEach(function(s){
+    if(s.img.complete){ if(--pending===0) _execPrint(); }
+    else{ s.img.onload=s.img.onerror=function(){ if(--pending===0) _execPrint(); }; }
+  });
 }
 
 // ── Utilities ──────────────────────────────────────────────────
