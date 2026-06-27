@@ -694,9 +694,12 @@ let _logScale = false;
 function toggleLog(){
   _logScale = !_logScale;
   document.getElementById('logToggle').classList.toggle('active', _logScale);
-  // Rebuild growth chart
   const gc = _charts.find(c=>c.canvas?.id==='growthChart');
-  if(gc){ gc.options.scales.y.type = _logScale?'logarithmic':'linear'; gc.update(); }
+  if(gc){
+    gc.options.scales.y.type = _logScale?'logarithmic':'linear';
+    gc.update();
+    if(window._btPrintImgs) window._btPrintImgs['growthChart'] = _capturePrint(gc.canvas);
+  }
 }
 
 function buildCharts(results, ports, sortedMonths, settings){
@@ -850,9 +853,10 @@ function buildCharts(results, ports, sortedMonths, settings){
     _charts.push(c);
   }
 
-  // ResizeObserver+draw 완전 완료 후 캡처 → 버튼 활성화 (목적자금 시뮬레이터 동일 패턴)
+  // ResizeObserver+draw 완전 완료 후 전체 캡처 → 버튼 활성화 (목적자금 시뮬레이터 동일 패턴)
   setTimeout(function(){
     window._btPrintImgs = {};
+    // 도넛: 하단 레전드로 캡처 후 원복
     var donuts = _charts.filter(function(c){ return c.canvas && c.canvas.id.startsWith('donut'); });
     donuts.forEach(function(c){
       try{
@@ -864,6 +868,10 @@ function buildCharts(results, ports, sortedMonths, settings){
         c.options.plugins.legend.labels={color:tc,font:{size:10},padding:6,boxWidth:12};
         c.update('none');
       }catch(e){}
+    });
+    // 라인/바/낙폭 차트: 현재 상태 캡처
+    _charts.filter(function(c){ return c.canvas && !c.canvas.id.startsWith('donut'); }).forEach(function(c){
+      try{ window._btPrintImgs[c.canvas.id]=_capturePrint(c.canvas); }catch(e){}
     });
     document.getElementById('headerActions').style.display='flex';
   },500);
@@ -1060,15 +1068,13 @@ function loadData(){
   }catch(e){ alert('불러오기 실패: '+e.message); }
 }
 
-// canvas → temp canvas 복사 후 PNG (직접 toDataURL보다 브라우저 호환성 높음)
+// canvas → temp canvas 복사 후 PNG (배경 fill 없음 → 컨테이너 배경 투과)
 function _capturePrint(cv){
   if(!cv||!cv.getContext)return'';
   var w=cv.width,h=cv.height;
   if(!w||!h)return'';
   var tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
-  var ctx=tmp.getContext('2d');
-  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
-  ctx.drawImage(cv,0,0,w,h);
+  tmp.getContext('2d').drawImage(cv,0,0,w,h);
   return tmp.toDataURL('image/png');
 }
 
@@ -1077,27 +1083,27 @@ function doPrint(){
     alert('백테스트 결과가 없습니다. 먼저 실행해 주세요.');
     return;
   }
-  // 도넛: buildCharts 시점에 하단범례로 pre-capture된 이미지 사용
-  // 라인/바: 현재 canvas 상태 live capture (로그스케일 토글 반영)
+  // 전체 pre-capture 이미지 사용 (buildCharts 시점에 모두 저장됨)
   var imgs=window._btPrintImgs||{};
   var swaps=[];
   document.querySelectorAll('#resultsArea canvas').forEach(function(cv){
     try{
       var isDonut=cv.id&&cv.id.startsWith('donut');
-      var src=isDonut?(imgs[cv.id]||_capturePrint(cv)):_capturePrint(cv);
+      var src=imgs[cv.id]||_capturePrint(cv);
       if(!src)return;
       var img=document.createElement('img');
       img.src=src;
-      img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block'+(isDonut?';object-fit:contain':'');
-      cv.parentNode.appendChild(img);
-      cv.style.visibility='hidden';
+      // canvas를 img로 완전 대체 (overlay 아님) → print 렌더러가 canvas 무시
+      img.style.cssText='width:100%;height:100%;display:block'+(isDonut?';object-fit:contain':'');
+      cv.parentNode.insertBefore(img,cv);
+      cv.style.display='none';
       swaps.push({cv:cv,img:img});
     }catch(e){}
   });
   var _t=document.title;document.title='IdentiFi_BacktestAssetAllocation';
   window.print();
   document.title=_t;
-  swaps.forEach(function(s){s.cv.style.visibility='';s.img.remove();});
+  swaps.forEach(function(s){s.cv.style.display='';s.img.remove();});
 }
 
 // ── Utilities ──────────────────────────────────────────────────
