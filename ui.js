@@ -716,12 +716,14 @@ function buildCharts(results, ports, sortedMonths, settings){
   const donutColors = ['#4E79A7','#F28E2B','#E15759','#76B7B2','#59A14F','#EDC948','#B07AA1','#FF9DA7','#9C755F','#BAB0AC'];
   const donutRow = document.getElementById('donutRow');
   if(donutRow){
+    // 자산 수 최댓값 기준으로 높이 통일 → 도넛들 높낮이 균형
+    const isMobile = window.innerWidth <= 700;
+    const maxAssets = Math.max(...results.filter(r=>r).map(r=>r.assets.length));
+    const donutH = isMobile ? 140 : Math.max(220, maxAssets * 18 + 20);
     results.forEach((r,pi)=>{
       if(!r) return;
       const wrap = document.createElement('div');
       wrap.className = 'donut-wrap';
-      // 자산 수만큼 레전드 높이 확보 (항목당 ~18px) → 우측 레전드 한 열로 유지
-      const donutH = window.innerWidth <= 700 ? 140 : Math.max(220, r.assets.length * 18 + 20);
       wrap.innerHTML = `<div style="font-size:.8rem;font-weight:500;color:${P_COLORS[pi]};text-align:center;margin-bottom:.5rem">${escHtml(ports[pi].name)}</div><div class="donut-chart-wrap" style="position:relative;height:${donutH}px"><canvas id="donut${pi}"></canvas></div>`;
       donutRow.appendChild(wrap);
     });
