@@ -76,45 +76,13 @@ const state = {
 const dataCache = new Map();
 let fxCache = null;
 
-// ── Data fetching ──────────────────────────────────────────────
-const PROXIES = [
-  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u=>`https://thingproxy.freeboard.io/fetch/${u}`,
-  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-];
-let _wpi = -1;
-let _ecosProxy = undefined; // undefined=미시도, null=직접호출, 0~3=프록시 인덱스
+// ── Data fetching (Cloudflare Worker proxy) ─────────────────────
+const WORKER_PROXY = 'https://asset-allocation-proxy.einsteindha.workers.dev';
 
-async function tryFetch(url, makeProxy){
-  const pu = makeProxy ? makeProxy(url) : url;
-  const r = await fetch(pu, {signal:AbortSignal.timeout(9000)});
+async function proxyFetch(url){
+  const r = await fetch(`${WORKER_PROXY}/?url=${encodeURIComponent(url)}`, {signal:AbortSignal.timeout(15000)});
   if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  const text = await r.text();
-  if(!text || text.trim().startsWith('<')) throw new Error('HTML response');
-  const parsed = JSON.parse(text);
-  if(parsed.contents){
-    const inner = JSON.parse(parsed.contents);
-    return inner;
-  }
-  return parsed;
-}
-
-async function yahooFetch(url){
-  if(_wpi !== -1){
-    try{ return await tryFetch(url, PROXIES[_wpi]); }catch(e){ _wpi=-1; }
-  }
-  return new Promise((resolve, reject) => {
-    const cands = [
-      {idx:-1, fn:()=>tryFetch(url,null)},
-      ...PROXIES.map((p,i)=>({idx:i, fn:()=>tryFetch(url,p)})),
-    ];
-    let settled=0, done=false;
-    cands.forEach(({idx,fn})=>{
-      fn().then(d=>{ if(!done){done=true;_wpi=idx;resolve(d);} })
-         .catch(()=>{ settled++; if(settled===cands.length&&!done) reject(new Error('모든 프록시 실패')); });
-    });
-  });
+  return r.json();
 }
 
 async function fetchYahooPrices(ticker, startYear, endYear){
@@ -127,7 +95,7 @@ async function fetchYahooPrices(ticker, startYear, endYear){
   let result = null;
   for(const url of urls){
     try{
-      const d = await yahooFetch(url);
+      const d = await proxyFetch(url);
       const r = d?.chart?.result?.[0];
       if(r){ result=r; break; }
     }catch(e){}
@@ -168,39 +136,13 @@ async function fetchECOSData(stat, item, startYear, endYear){
   const s = `${startYear}01`, e = `${endYear}12`;
   const url = `https://ecos.bok.or.kr/api/StatisticSearch/${ECOS_API_KEY}/json/kr/1/10000/${stat}/M/${s}/${e}/${item}`;
 
-  const toRows = d => {
-    if(!d?.StatisticSearch?.row?.length) return null;
-    return d.StatisticSearch.row
-      .map(r=>({year:parseInt(r.TIME.slice(0,4)),month:parseInt(r.TIME.slice(4,6)),value:parseFloat(r.DATA_VALUE)}))
-      .filter(r=>!isNaN(r.value));
-  };
-
-  // 캐싱된 프록시 먼저 시도
-  if(_ecosProxy !== undefined){
-    try{
-      const d = await tryFetch(url, _ecosProxy===null ? null : PROXIES[_ecosProxy]);
-      const rows = toRows(d);
-      if(rows?.length) return rows;
-    }catch(e){ _ecosProxy=undefined; }
-  }
-
-  // 직접 + 프록시 전체 병렬 시도 (yahooFetch 동일 패턴)
-  return new Promise((resolve,reject)=>{
-    const cands=[
-      {key:null, fn:()=>tryFetch(url,null)},
-      ...PROXIES.map((p,i)=>({key:i, fn:()=>tryFetch(url,p)})),
-    ];
-    let settled=0, done=false;
-    cands.forEach(({key,fn})=>{
-      fn()
-        .then(d=>{
-          const rows=toRows(d);
-          if(!done&&rows?.length){ done=true; _ecosProxy=key; resolve(rows); }
-          else{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); }
-        })
-        .catch(()=>{ settled++; if(settled===cands.length&&!done) reject(new Error('ECOS 데이터 없음')); });
-    });
-  });
+  const d = await proxyFetch(url);
+  if(!d?.StatisticSearch?.row?.length) throw new Error('ECOS 데이터 없음');
+  const rows = d.StatisticSearch.row
+    .map(r=>({year:parseInt(r.TIME.slice(0,4)),month:parseInt(r.TIME.slice(4,6)),value:parseFloat(r.DATA_VALUE)}))
+    .filter(r=>!isNaN(r.value));
+  if(!rows.length) throw new Error('ECOS 데이터 없음');
+  return rows;
 }
 
 // Convert bond yield series → monthly price return series
